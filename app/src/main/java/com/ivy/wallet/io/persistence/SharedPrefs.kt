@@ -49,11 +49,15 @@ class SharedPrefs(appContext: Context) {
         const val START_DATE_OF_MONTH = "start_date_of_month"
         const val SHOW_NOTIFICATIONS = "show_notifications"
         const val HIDE_CURRENT_BALANCE = "hide_current_balance"
+        const val TRANSFERS_AS_INCOME_EXPENSE = "transfers_as_inc_exp"
         //----------------------------- App Settings -----------------------------------------------
 
         //-------------------------------- Customer Journey ----------------------------------------
         const val _CARD_DISMISSED = "_cj_dismissed"
         //-------------------------------- Customer Journey ----------------------------------------
+
+        //----------------------------- Others -----------------------------------------------
+        const val CATEGORY_SORT_ORDER = "categorySortOrder"
     }
 
     private val preferences = appContext.getSharedPreferences(PREFS_FILENAME, Context.MODE_PRIVATE)

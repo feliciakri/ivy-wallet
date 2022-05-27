@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -30,15 +31,16 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.insets.statusBarsPadding
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.frp.test.TestingContext
 import com.ivy.wallet.Constants
 import com.ivy.wallet.R
 import com.ivy.wallet.domain.data.TransactionType
-import com.ivy.wallet.domain.data.entity.Account
+import com.ivy.wallet.domain.data.core.Account
 import com.ivy.wallet.ui.IvyWalletPreview
 import com.ivy.wallet.ui.ivyWalletCtx
 import com.ivy.wallet.ui.theme.*
 import com.ivy.wallet.ui.theme.components.*
-import com.ivy.wallet.ui.theme.modal.DURATION_MODAL_KEYBOARD
+import com.ivy.wallet.ui.theme.modal.DURATION_MODAL_ANIM
 import com.ivy.wallet.ui.theme.modal.ModalSave
 import com.ivy.wallet.ui.theme.modal.ModalSet
 import com.ivy.wallet.ui.theme.modal.edit.AmountModal
@@ -81,13 +83,13 @@ fun BoxWithConstraintsScope.EditBottomSheet(
         targetValue = densityScope {
             if (keyboardShown) keyboardOnlyWindowInsets().bottom.toDp() else 0.dp
         },
-        animationSpec = tween(DURATION_MODAL_KEYBOARD)
+        animationSpec = tween(DURATION_MODAL_ANIM)
     )
     val navBarPadding by animateDpAsState(
         targetValue = densityScope {
             if (keyboardShown) 0.dp else navigationBarInsets().bottom.toDp()
         },
-        animationSpec = tween(DURATION_MODAL_KEYBOARD)
+        animationSpec = tween(DURATION_MODAL_ANIM)
     )
 
     var bottomBarHeight by remember { mutableStateOf(0) }
@@ -114,11 +116,16 @@ fun BoxWithConstraintsScope.EditBottomSheet(
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(top = 24.dp)
-            .drawColoredShadow(
-                color = UI.colors.mediumInverse,
-                alpha = if (UI.colors.isLight) 0.3f else 0.2f,
-                borderRadius = 24.dp,
-                shadowRadius = 24.dp
+//            .drawColoredShadow(
+//                color = UI.colors.mediumInverse,
+//                alpha = if (UI.colors.isLight) 0.3f else 0.2f,
+//                borderRadius = 24.dp,
+//                shadowRadius = 24.dp
+//            )
+            .border(
+                width = 2.dp,
+                color = UI.colors.medium,
+                shape = UI.shapes.r2Top
             )
             .background(UI.colors.pure, UI.shapes.r2Top)
             .verticalSwipeListener(
@@ -135,9 +142,9 @@ fun BoxWithConstraintsScope.EditBottomSheet(
     ) {
         //Accounts label
         val label = when (type) {
-            TransactionType.INCOME -> "Add money to"
-            TransactionType.EXPENSE -> "Pay with"
-            TransactionType.TRANSFER -> "From"
+            TransactionType.INCOME -> stringResource(R.string.add_money_to)
+            TransactionType.EXPENSE -> stringResource(R.string.pay_with)
+            TransactionType.TRANSFER -> stringResource(R.string.from)
         }
 
         SheetHeader(
@@ -223,7 +230,7 @@ fun BoxWithConstraintsScope.EditBottomSheet(
 
             Text(
                 modifier = Modifier.padding(start = 32.dp),
-                text = "Account",
+                text = stringResource(R.string.account),
                 style = UI.typo.b1.style(
                     color = UI.colors.pureInverse,
                     fontWeight = FontWeight.ExtraBold
@@ -439,7 +446,7 @@ private fun SheetHeader(
 
                 Text(
                     modifier = Modifier.padding(start = 32.dp),
-                    text = "To",
+                    text = stringResource(R.string.to),
                     style = UI.typo.b1.style(
                         color = UI.colors.pureInverse,
                         fontWeight = FontWeight.ExtraBold
@@ -588,7 +595,7 @@ private fun AddAccount(
 
         Text(
             modifier = Modifier.padding(vertical = 10.dp),
-            text = "Add account",
+            text = stringResource(R.string.add_account),
             style = UI.typo.b2.style(
                 color = UI.colors.pureInverse,
                 fontWeight = FontWeight.ExtraBold

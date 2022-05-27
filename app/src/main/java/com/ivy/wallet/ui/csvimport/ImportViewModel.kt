@@ -5,19 +5,20 @@ import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ivy.design.navigation.Navigation
-import com.ivy.wallet.domain.logic.csv.CSVImporter
-import com.ivy.wallet.domain.logic.csv.CSVMapper
-import com.ivy.wallet.domain.logic.csv.CSVNormalizer
-import com.ivy.wallet.domain.logic.csv.IvyFileReader
-import com.ivy.wallet.domain.logic.csv.model.ImportResult
-import com.ivy.wallet.domain.logic.csv.model.ImportType
-import com.ivy.wallet.domain.logic.zip.ExportZipLogic
+import com.ivy.frp.test.TestIdlingResource
+import com.ivy.frp.view.navigation.Navigation
+import com.ivy.wallet.domain.deprecated.logic.csv.CSVImporter
+import com.ivy.wallet.domain.deprecated.logic.csv.CSVMapper
+import com.ivy.wallet.domain.deprecated.logic.csv.CSVNormalizer
+import com.ivy.wallet.domain.deprecated.logic.csv.IvyFileReader
+import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportResult
+import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportType
+import com.ivy.wallet.domain.deprecated.logic.zip.ExportZipLogic
 import com.ivy.wallet.ui.Import
 import com.ivy.wallet.ui.IvyWalletCtx
 import com.ivy.wallet.ui.onboarding.viewmodel.OnboardingViewModel
-import com.ivy.wallet.utils.TestIdlingResource
 import com.ivy.wallet.utils.asLiveData
+import com.ivy.wallet.utils.getFileName
 import com.ivy.wallet.utils.ioThread
 import com.ivy.wallet.utils.uiThread
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -79,7 +80,7 @@ class ImportViewModel @Inject constructor(
 
                 _importStep.value = ImportStep.LOADING
 
-                _importResult.value = if (hasCSVExtension(fileUri))
+                _importResult.value = if (hasCSVExtension(context, fileUri))
                     restoreCSVFile(fileUri = fileUri, importType = importType)
                 else {
                     exportZipLogic.import(
@@ -196,10 +197,11 @@ class ImportViewModel @Inject constructor(
         _importStep.value = ImportStep.IMPORT_FROM
     }
 
-    private fun hasCSVExtension(fileUri: Uri): Boolean {
-        var ex = fileUri.toString()
-        ex = ex.substring(ex.lastIndexOf("."))
-
-        return ex.equals(".csv", ignoreCase = true)
+    private suspend fun hasCSVExtension(
+        context: Context,
+        fileUri: Uri
+    ): Boolean = ioThread {
+        val fileName = context.getFileName(fileUri)
+        fileName?.endsWith(suffix = ".csv", ignoreCase = true) ?: false
     }
 }

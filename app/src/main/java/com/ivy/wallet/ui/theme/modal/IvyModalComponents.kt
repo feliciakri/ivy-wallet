@@ -7,6 +7,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ivy.design.l0_system.UI
@@ -25,25 +26,34 @@ fun ModalDynamicPrimaryAction(
     initialEmpty: Boolean,
     initialChanged: Boolean,
 
+    testTagSave: String = "tag_save",
+    testTagDelete: String = "tag_delete",
+
     onDelete: () -> Unit,
     dismiss: () -> Unit,
     onSave: () -> Unit
 ) {
     when {
         initialEmpty -> {
-            ModalAdd {
+            ModalAdd(
+                testTag = testTagSave
+            ) {
                 onSave()
                 dismiss()
             }
         }
         else -> {
             if (!initialChanged) {
-                ModalDelete {
+                ModalDelete(
+                    testTag = testTagDelete
+                ) {
                     onDelete()
                     dismiss()
                 }
             } else {
-                ModalSave {
+                ModalSave(
+                    modifier = Modifier.testTag(testTagSave)
+                ) {
                     onSave()
                     dismiss()
                 }
@@ -55,7 +65,7 @@ fun ModalDynamicPrimaryAction(
 @Composable
 fun ModalSet(
     modifier: Modifier = Modifier,
-    label: String = "Set",
+    label: String = stringResource(R.string.set),
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -110,7 +120,7 @@ fun ModalSave(
 ) {
     ModalPositiveButton(
         modifier = modifier,
-        text = "Save",
+        text = stringResource(R.string.save),
         iconStart = R.drawable.ic_save,
         enabled = enabled,
         onClick = onClick
@@ -120,10 +130,12 @@ fun ModalSave(
 @Composable
 fun ModalAdd(
     enabled: Boolean = true,
+    testTag: String = "modal_add",
     onClick: () -> Unit
 ) {
     ModalPositiveButton(
-        text = "Add",
+        modifier = Modifier.testTag(testTag),
+        text = stringResource(R.string.add),
         iconStart = R.drawable.ic_plus,
         enabled = enabled,
         onClick = onClick
@@ -136,7 +148,7 @@ fun ModalCreate(
     onClick: () -> Unit
 ) {
     ModalPositiveButton(
-        text = "Create",
+        text = stringResource(R.string.create),
         iconStart = R.drawable.ic_plus,
         enabled = enabled,
         onClick = onClick
@@ -196,12 +208,13 @@ fun ModalPrimaryButton(
 @Composable
 fun ModalDelete(
     enabled: Boolean = true,
+    testTag: String = "modal_delete",
     onClick: () -> Unit
 ) {
     IvyCircleButton(
         modifier = Modifier
             .size(40.dp)
-            .testTag("modal_delete"),
+            .testTag(testTag),
         icon = R.drawable.ic_delete,
         backgroundGradient = GradientRed,
         enabled = enabled,
@@ -226,7 +239,7 @@ fun ModalTitle(
 
 @Composable
 fun ModalSkip(
-    text: String = "Skip",
+    text: String = stringResource(R.string.skip),
     onClick: () -> Unit
 ) {
     IvyOutlinedButton(

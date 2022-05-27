@@ -15,23 +15,25 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.insets.statusBarsHeight
-import com.ivy.design.api.navigation
 import com.ivy.design.l0_system.Theme
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.frp.view.navigation.navigation
 import com.ivy.wallet.Constants
 import com.ivy.wallet.R
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.domain.data.TransactionHistoryItem
 import com.ivy.wallet.domain.data.TransactionType
-import com.ivy.wallet.domain.data.entity.Account
-import com.ivy.wallet.domain.data.entity.Category
-import com.ivy.wallet.domain.data.entity.Transaction
+import com.ivy.wallet.domain.data.core.Account
+import com.ivy.wallet.domain.data.core.Category
+import com.ivy.wallet.domain.data.core.Transaction
+import com.ivy.wallet.stringRes
 import com.ivy.wallet.ui.*
 import com.ivy.wallet.ui.onboarding.model.TimePeriod
 import com.ivy.wallet.ui.theme.*
@@ -83,6 +85,7 @@ fun BoxWithConstraintsScope.ItemStatisticScreen(screen: ItemStatistic) {
     val overdueExpenses by viewModel.overdueExpenses.collectAsState()
 
     val initWithTransactions by viewModel.initWithTransactions.collectAsState()
+    val treatTransfersAsIncomeExpense by viewModel.treatTransfersAsIncomeExpense.collectAsState()
 
     val view = LocalView.current
     onScreenStart {
@@ -114,6 +117,7 @@ fun BoxWithConstraintsScope.ItemStatisticScreen(screen: ItemStatistic) {
         expenses = expenses,
 
         initWithTransactions = initWithTransactions,
+        treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense,
 
         history = history,
 
@@ -173,6 +177,7 @@ private fun BoxWithConstraintsScope.UI(
     expenses: Double,
 
     initWithTransactions: Boolean = false,
+    treatTransfersAsIncomeExpense: Boolean = false,
 
     history: List<TransactionHistoryItem>,
 
@@ -249,6 +254,7 @@ private fun BoxWithConstraintsScope.UI(
                     category = category,
                     balance = balance,
                     balanceBaseCurrency = balanceBaseCurrency,
+                    treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense,
 
                     onDelete = {
                         deleteModalVisible = true
@@ -355,22 +361,24 @@ private fun BoxWithConstraintsScope.UI(
                     (ivyContext.screenHeight * 0.7f).toDp()
                 },
                 onPayOrGet = onPayOrGet,
-                emptyStateTitle = "No transactions",
+                emptyStateTitle = stringRes(R.string.no_transactions),
 
-                emptyStateText = "You don't have any transactions for ${
+                emptyStateText = stringRes(
+                    R.string.no_transactions_for_period,
                     period.toDisplayLong(ivyContext.startDayOfMonth)
-                }.\nYou can add one by scrolling down and tapping \"Add income\" or \"Add expense\" button at the top."
-            )
+                ),
+
+                )
         }
     }
 
     DeleteModal(
         visible = deleteModalVisible,
-        title = "Confirm deletion",
+        title = stringResource(R.string.confirm_deletion),
         description = if (account != null) {
-            "Note: Deleting this account will remove it permanently and delete all associated transactions with it."
+            stringResource(R.string.account_confirm_deletion_description)
         } else {
-            "Note: Deleting this category will remove it permanently."
+            stringResource(R.string.category_confirm_deletion_description)
         },
         dismiss = { deleteModalVisible = false }
     ) {
@@ -417,6 +425,7 @@ private fun Header(
     balanceBaseCurrency: Double?,
     income: Double,
     expenses: Double,
+    treatTransfersAsIncomeExpense: Boolean = false,
 
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -504,7 +513,8 @@ private fun Header(
                         PieChartStatistic(
                             type = TransactionType.INCOME,
                             accountList = listOf(account.id),
-                            filterExcluded = false
+                            filterExcluded = false,
+                            treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense
                         )
                     )
                 }
@@ -515,7 +525,8 @@ private fun Header(
                         PieChartStatistic(
                             type = TransactionType.EXPENSE,
                             accountList = listOf(account.id),
-                            filterExcluded = false
+                            filterExcluded = false,
+                            treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense
                         )
                     )
                 }
@@ -562,7 +573,7 @@ fun ItemStatisticToolbar(
 
         IvyOutlinedButton(
             iconStart = R.drawable.ic_edit,
-            text = "Edit",
+            text = stringRes(R.string.edit),
             borderColor = contrastColor,
             iconTint = contrastColor,
             textColor = contrastColor,
@@ -602,13 +613,13 @@ fun IncomeExpensesCards(
         Spacer(Modifier.width(16.dp))
 
         HeaderCard(
-            title = "INCOME",
+            title = stringRes(R.string.income_uppercase),
             currencyCode = currency,
             amount = income,
             transactionCount = history
                 .filterIsInstance(Transaction::class.java)
                 .count { it.type == TransactionType.INCOME },
-            addButtonText = if (hasAddButtons) "Add income" else null,
+            addButtonText = if (hasAddButtons) stringResource(R.string.add_income) else null,
             isIncome = true,
 
             itemColor = itemColor,
@@ -620,13 +631,13 @@ fun IncomeExpensesCards(
         Spacer(Modifier.width(12.dp))
 
         HeaderCard(
-            title = "EXPENSES",
+            title = stringRes(R.string.expenses_uppercase),
             currencyCode = currency,
             amount = expenses,
             transactionCount = history
                 .filterIsInstance(Transaction::class.java)
                 .count { it.type == TransactionType.EXPENSE },
-            addButtonText = if (hasAddButtons) "Add expense" else null,
+            addButtonText = if (hasAddButtons) stringResource(R.string.add_expense) else null,
             isIncome = false,
 
             itemColor = itemColor,
@@ -711,7 +722,7 @@ private fun RowScope.HeaderCard(
         )
         Text(
             modifier = Modifier.padding(horizontal = 24.dp),
-            text = "transactions",
+            text = stringRes(R.string.transactions),
             style = UI.typo.b2.style(
                 color = contrastColor,
                 fontWeight = FontWeight.Normal
@@ -794,7 +805,7 @@ private fun Item(
                         modifier = Modifier
                             .align(Alignment.Bottom)
                             .padding(bottom = 12.dp),
-                        text = "(excluded)",
+                        text = stringRes(R.string.excluded),
                         style = UI.typo.c.style(
                             color = account.color.toComposeColor().dynamicContrast()
                         )

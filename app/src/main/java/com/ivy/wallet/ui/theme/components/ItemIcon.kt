@@ -3,14 +3,20 @@ package com.ivy.wallet.ui.theme.components
 import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.ivy.design.l0_system.UI
+import com.ivy.design.utils.thenWhen
 import com.ivy.wallet.ui.IvyWalletComponentPreview
 import com.ivy.wallet.utils.toLowerCaseLocal
 
@@ -20,13 +26,16 @@ fun ItemIconL(
     modifier: Modifier = Modifier,
     iconName: String?,
     tint: Color = UI.colors.pureInverse,
+    iconContentScale: ContentScale? = null,
     Default: (@Composable () -> Unit)? = null
 ) {
     ItemIcon(
-        modifier = modifier,
+        modifier = modifier
+            .size(64.dp),
         size = "l",
         iconName = iconName,
         tint = tint,
+        iconContentScale = iconContentScale,
         Default = Default
     )
 }
@@ -58,13 +67,16 @@ fun ItemIconM(
     modifier: Modifier = Modifier,
     iconName: String?,
     tint: Color = UI.colors.pureInverse,
+    iconContentScale: ContentScale? = null,
     Default: (@Composable () -> Unit)? = null
 ) {
     ItemIcon(
-        modifier = modifier,
+        modifier = modifier
+            .size(48.dp),
         size = "m",
         iconName = iconName,
         tint = tint,
+        iconContentScale = iconContentScale,
         Default = Default
     )
 }
@@ -96,13 +108,16 @@ fun ItemIconS(
     modifier: Modifier = Modifier,
     iconName: String?,
     tint: Color = UI.colors.pureInverse,
+    iconContentScale: ContentScale? = null,
     Default: (@Composable () -> Unit)? = null
 ) {
     ItemIcon(
-        modifier = modifier,
+        modifier = modifier
+            .size(32.dp),
         size = "s",
         iconName = iconName,
         tint = tint,
+        iconContentScale = iconContentScale,
         Default = Default
     )
 }
@@ -113,21 +128,45 @@ private fun ItemIcon(
     iconName: String?,
     size: String,
     tint: Color = UI.colors.pureInverse,
+    iconContentScale: ContentScale? = null,
     Default: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
-    val iconId = getCustomIconId(
+    val iconInfo = getCustomIconId(
         context = context,
         iconName = iconName,
         size = size
     )
 
-    if (iconId != null) {
+    if (iconInfo != null) {
         Image(
-            modifier = modifier,
-            painter = painterResource(id = iconId),
+            modifier = modifier
+                .thenWhen {
+                    if (!iconInfo.newFormat) {
+                        //do nothing for the old format of icons
+                        return@thenWhen this
+                    }
+
+                    when (iconInfo.style) {
+                        IconStyle.L ->
+                            //64.dp - 48.dp = 16.dp / 4 = 4.dp
+                            this.padding(all = 4.dp)
+                        IconStyle.M ->
+                            //48.dp - 32.dp = 16.dp / 4 = 4.dp
+                            this.padding(all = 4.dp)
+                        IconStyle.S ->
+                            //32.dp - 24.dp = 8.dp / 4 = 2.dp
+                            //2.dp is too small padding
+                            this.padding(all = 4.dp)
+                        IconStyle.UNKNOWN -> this
+                    }
+                },
+            painter = painterResource(id = iconInfo.iconId),
             colorFilter = ColorFilter.tint(tint),
-            contentDescription = "item icon"
+            alignment = Alignment.Center,
+            contentScale = iconContentScale ?: if (iconInfo.newFormat)
+                ContentScale.Fit else ContentScale.None,
+            contentDescription = iconName ?: "item icon"
         )
     } else {
         Default?.invoke()
@@ -145,7 +184,7 @@ fun getCustomIconIdS(
         context = context,
         iconName = iconName,
         size = "s"
-    ) ?: defaultIcon
+    )?.iconId ?: defaultIcon
 }
 
 @DrawableRes
@@ -159,7 +198,7 @@ fun getCustomIconIdM(
         context = context,
         iconName = iconName,
         size = "m"
-    ) ?: defaultIcon
+    )?.iconId ?: defaultIcon
 }
 
 @DrawableRes
@@ -173,26 +212,91 @@ fun getCustomIconIdL(
         context = context,
         iconName = iconName,
         size = "l"
-    ) ?: defaultIcon
+    )?.iconId ?: defaultIcon
 }
 
-@DrawableRes
 fun getCustomIconId(
     context: Context,
     iconName: String?,
     size: String,
-): Int? {
+): IconInfo? {
+    val iconStyle = when (size) {
+        "l" -> IconStyle.L
+        "m" -> IconStyle.M
+        "s" -> IconStyle.S
+        else -> IconStyle.UNKNOWN
+    }
+
     return iconName?.let {
         try {
             val iconNameNormalized = iconName
                 .replace(" ", "")
                 .trim()
                 .toLowerCaseLocal()
-            context.resources.getIdentifier(
+
+            val itemId = context.resources.getIdentifier(
                 "ic_custom_${iconNameNormalized}_${size}",
                 "drawable",
                 context.packageName
             ).takeIf { it != 0 }
+
+            itemId?.let { nonNullId ->
+                IconInfo(
+                    iconId = nonNullId,
+                    style = iconStyle,
+                    newFormat = false
+                )
+            } ?: fallbackToNewIconFormat(
+                context = context,
+                iconName = iconName,
+                iconStyle = iconStyle
+            )
+        } catch (e: Exception) {
+            fallbackToNewIconFormat(
+                context = context,
+                iconName = iconName,
+                iconStyle = iconStyle
+            )
+        }
+    }
+}
+
+data class IconInfo(
+    @DrawableRes
+    val iconId: Int,
+    val style: IconStyle,
+    val newFormat: Boolean
+)
+
+enum class IconStyle {
+    L, M, S, UNKNOWN
+}
+
+fun fallbackToNewIconFormat(
+    iconStyle: IconStyle,
+    context: Context,
+    iconName: String?,
+): IconInfo? {
+    return iconName?.let {
+        try {
+            val iconNameNormalized = iconName
+                .replace(" ", "")
+                .trim()
+                .toLowerCaseLocal()
+
+            val iconId = context.resources.getIdentifier(
+                iconNameNormalized,
+                "drawable",
+                context.packageName
+            ).takeIf { it != 0 }
+
+            iconId?.let { nonNullId ->
+                IconInfo(
+                    iconId = nonNullId,
+                    style = iconStyle,
+                    newFormat = true
+                )
+            }
         } catch (e: Exception) {
             null
         }

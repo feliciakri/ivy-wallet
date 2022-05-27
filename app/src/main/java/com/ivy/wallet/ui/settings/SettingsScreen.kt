@@ -1,7 +1,10 @@
 package com.ivy.wallet.ui.settings
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -16,29 +19,32 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.accompanist.coil.rememberCoilPainter
+import coil.compose.AsyncImage
 import com.google.accompanist.insets.navigationBarsPadding
 import com.google.accompanist.insets.statusBarsPadding
-import com.ivy.design.api.navigation
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.l1_buildingBlocks.IconScale
+import com.ivy.design.l1_buildingBlocks.IvyIconScaled
+import com.ivy.frp.view.navigation.navigation
 import com.ivy.wallet.BuildConfig
 import com.ivy.wallet.Constants
 import com.ivy.wallet.Constants.URL_IVY_CONTRIBUTORS
 import com.ivy.wallet.R
 import com.ivy.wallet.domain.data.AuthProviderType
 import com.ivy.wallet.domain.data.IvyCurrency
-import com.ivy.wallet.domain.data.entity.User
+import com.ivy.wallet.domain.data.core.User
 import com.ivy.wallet.ui.*
 import com.ivy.wallet.ui.theme.*
 import com.ivy.wallet.ui.theme.components.IvyButton
-import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.components.IvySwitch
 import com.ivy.wallet.ui.theme.components.IvyToolbar
 import com.ivy.wallet.ui.theme.modal.*
@@ -56,6 +62,7 @@ fun BoxWithConstraintsScope.SettingsScreen(screen: Settings) {
     val lockApp by viewModel.lockApp.observeAsState(false)
     val showNotifications by viewModel.showNotifications.collectAsState()
     val hideCurrentBalance by viewModel.hideCurrentBalance.collectAsState()
+    val treatTransfersAsIncomeExpense by viewModel.treatTransfersAsIncomeExpense.collectAsState()
     val startDateOfMonth by viewModel.startDateOfMonth.observeAsState(1)
     val progressState by viewModel.progressState.collectAsState()
 
@@ -75,6 +82,7 @@ fun BoxWithConstraintsScope.SettingsScreen(screen: Settings) {
         showNotifications = showNotifications,
         hideCurrentBalance = hideCurrentBalance,
         progressState = progressState,
+        treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense,
 
         nameLocalAccount = nameLocalAccount,
         startDateOfMonth = startDateOfMonth,
@@ -96,6 +104,7 @@ fun BoxWithConstraintsScope.SettingsScreen(screen: Settings) {
         onSetShowNotifications = viewModel::setShowNotifications,
         onSetHideCurrentBalance = viewModel::setHideCurrentBalance,
         onSetStartDateOfMonth = viewModel::setStartDateOfMonth,
+        onSetTreatTransfersAsIncExp = viewModel::setTransfersAsIncomeExpense,
         onRequestFeature = { title, body ->
             viewModel.requestFeature(
                 rootActivity = ivyActivity,
@@ -118,6 +127,7 @@ private fun BoxWithConstraintsScope.UI(
     showNotifications: Boolean = true,
     hideCurrentBalance: Boolean = false,
     progressState: Boolean = false,
+    treatTransfersAsIncomeExpense: Boolean = false,
 
     nameLocalAccount: String?,
     startDateOfMonth: Int = 1,
@@ -133,6 +143,7 @@ private fun BoxWithConstraintsScope.UI(
     onExportToCSV: () -> Unit = {},
     onSetLockApp: (Boolean) -> Unit = {},
     onSetShowNotifications: (Boolean) -> Unit = {},
+    onSetTreatTransfersAsIncExp: (Boolean) -> Unit = {},
     onSetHideCurrentBalance: (Boolean) -> Unit = {},
     onSetStartDateOfMonth: (Int) -> Unit = {},
     onRequestFeature: (String, String) -> Unit = { _, _ -> },
@@ -179,7 +190,7 @@ private fun BoxWithConstraintsScope.UI(
 
             Text(
                 modifier = Modifier.padding(start = 32.dp),
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 style = UI.typo.h2.style(
                     fontWeight = FontWeight.Black
                 )
@@ -210,7 +221,7 @@ private fun BoxWithConstraintsScope.UI(
         }
 
         item {
-            SettingsSectionDivider(text = "Import & Export")
+            SettingsSectionDivider(text = stringResource(R.string.import_export))
 
             Spacer(Modifier.height(16.dp))
 
@@ -222,8 +233,9 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(12.dp))
 
             SettingsDefaultButton(
-                icon = R.drawable.ic_export_csv,
-                text = "Backup Data",
+                icon = R.drawable.ic_vue_security_shield,
+                text = stringResource(R.string.backup_data),
+                iconPadding = 6.dp
             ) {
                 onBackupData()
             }
@@ -232,7 +244,7 @@ private fun BoxWithConstraintsScope.UI(
 
             SettingsPrimaryButton(
                 icon = R.drawable.ic_export_csv,
-                text = "Import Data",
+                text = stringResource(R.string.import_data),
                 backgroundGradient = GradientGreen
             ) {
                 nav.navigateTo(
@@ -244,14 +256,14 @@ private fun BoxWithConstraintsScope.UI(
         }
 
         item {
-            SettingsSectionDivider(text = "App Settings")
+            SettingsSectionDivider(text = stringResource(R.string.app_settings))
 
             Spacer(Modifier.height(16.dp))
 
             AppSwitch(
                 lockApp = lockApp,
                 onSetLockApp = onSetLockApp,
-                text = "Lock app",
+                text = stringResource(R.string.lock_app),
                 icon = R.drawable.ic_custom_fingerprint_m
             )
 
@@ -260,7 +272,7 @@ private fun BoxWithConstraintsScope.UI(
             AppSwitch(
                 lockApp = showNotifications,
                 onSetLockApp = onSetShowNotifications,
-                text = "Show notifications",
+                text = stringResource(R.string.show_notifications),
                 icon = R.drawable.ic_notification_m
             )
 
@@ -269,9 +281,19 @@ private fun BoxWithConstraintsScope.UI(
             AppSwitch(
                 lockApp = hideCurrentBalance,
                 onSetLockApp = onSetHideCurrentBalance,
-                text = "Hide balance",
-                description = "Click on the hidden balance to show the balance for 5s",
+                text = stringResource(R.string.hide_balance),
+                description = stringResource(R.string.hide_balance_description),
                 icon = R.drawable.ic_hide_m
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            AppSwitch(
+                lockApp = treatTransfersAsIncomeExpense,
+                onSetLockApp = onSetTreatTransfersAsIncExp,
+                text = stringResource(R.string.transfers_as_income_expense),
+                description = stringResource(R.string.transfers_as_income_expense_description),
+                icon = R.drawable.ic_custom_transfer_m
             )
 
             Spacer(Modifier.height(12.dp))
@@ -284,14 +306,14 @@ private fun BoxWithConstraintsScope.UI(
         }
 
         item {
-            SettingsSectionDivider(text = "Other")
+            SettingsSectionDivider(text = stringResource(R.string.other))
 
             Spacer(Modifier.height(16.dp))
 
             val ivyActivity = LocalContext.current as RootActivity
             SettingsPrimaryButton(
                 icon = R.drawable.ic_custom_star_m,
-                text = "Rate us on Google Play",
+                text = stringResource(R.string.rate_us_on_google_play),
                 backgroundGradient = GradientIvy
             ) {
                 ivyActivity.reviewIvyWallet(dismissReviewCard = false)
@@ -301,7 +323,7 @@ private fun BoxWithConstraintsScope.UI(
 
             SettingsPrimaryButton(
                 icon = R.drawable.ic_custom_family_m,
-                text = "Share Ivy Wallet",
+                text = stringResource(R.string.share_ivy_wallet),
                 backgroundGradient = Gradient.solid(Red3)
             ) {
                 ivyActivity.shareIvyWallet()
@@ -309,7 +331,7 @@ private fun BoxWithConstraintsScope.UI(
         }
 
         item {
-            SettingsSectionDivider(text = "Product")
+            SettingsSectionDivider(text = stringResource(R.string.product))
 
             Spacer(Modifier.height(12.dp))
 
@@ -344,7 +366,7 @@ private fun BoxWithConstraintsScope.UI(
 
         item {
             SettingsSectionDivider(
-                text = "Danger zone",
+                text = stringResource(R.string.danger_zone),
                 color = Red
             )
 
@@ -352,7 +374,7 @@ private fun BoxWithConstraintsScope.UI(
 
             SettingsPrimaryButton(
                 icon = R.drawable.ic_delete,
-                text = "Delete all user data",
+                text = stringResource(R.string.delete_all_user_data),
                 backgroundGradient = Gradient.solid(Red)
             ) {
                 deleteAllDataModalVisible = true
@@ -365,7 +387,7 @@ private fun BoxWithConstraintsScope.UI(
     }
 
     CurrencyModal(
-        title = "Set currency",
+        title = stringResource(R.string.set_currency),
         initialCurrency = IvyCurrency.fromCode(currencyCode),
         visible = currencyModalVisible,
         dismiss = { currencyModalVisible = false }
@@ -398,8 +420,12 @@ private fun BoxWithConstraintsScope.UI(
     )
 
     DeleteModal(
-        title = "Delete all user data?",
-        description = "WARNING! This action will delete all data for ${user?.email ?: "your account"} PERMANENTLY and you won't be able to recover it.",
+        title = stringResource(R.string.delete_all_user_data_question),
+        description = stringResource(
+            R.string.delete_all_user_data_warning, user?.email ?: stringResource(
+                R.string.your_account
+            )
+        ),
         visible = deleteAllDataModalVisible,
         dismiss = { deleteAllDataModalVisible = false },
         onDelete = {
@@ -409,8 +435,12 @@ private fun BoxWithConstraintsScope.UI(
     )
 
     DeleteModal(
-        title = "Confirm permanent deletion for '${user?.email ?: "all of your data"}'",
-        description = "FINAL WARNING! After clicking \"Delete\" your data will be gone forever.",
+        title = stringResource(
+            R.string.confirm_all_userd_data_deletion, user?.email ?: stringResource(
+                R.string.all_of_your_data
+            )
+        ),
+        description = stringResource(R.string.final_deletion_warning),
         visible = deleteAllDataModalFinalVisible,
         dismiss = { deleteAllDataModalFinalVisible = false },
         onDelete = {
@@ -419,8 +449,8 @@ private fun BoxWithConstraintsScope.UI(
     )
 
     ProgressModal(
-        title = "Exporting Data",
-        description = "Please wait, exporting data",
+        title = stringResource(R.string.exporting_data),
+        description = stringResource(R.string.exporting_data_description),
         visible = progressState
     )
 }
@@ -433,21 +463,20 @@ private fun StartDateOfMonth(
     SettingsButtonRow(
         onClick = onClick
     ) {
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(12.dp))
 
-        IvyIcon(
-            modifier = Modifier
-                .size(48.dp)
-                .padding(all = 4.dp),
+        IvyIconScaled(
             icon = R.drawable.ic_custom_calendar_m,
-            tint = UI.colors.pureInverse
+            tint = UI.colors.pureInverse,
+            iconScale = IconScale.M,
+            padding = 0.dp
         )
 
         Spacer(Modifier.width(8.dp))
 
         Text(
             modifier = Modifier.padding(vertical = 20.dp),
-            text = "Start date of month",
+            text = stringResource(R.string.start_date_of_month),
             style = UI.typo.b2.style(
                 color = UI.colors.pureInverse,
                 fontWeight = FontWeight.Bold
@@ -474,8 +503,9 @@ private fun IvyTelegram() {
     val rootActivity = rootActivity()
     SettingsPrimaryButton(
         icon = R.drawable.ic_telegram_24dp,
-        text = "Ivy Telegram",
+        text = stringResource(R.string.ivy_telegram),
         backgroundGradient = Gradient.solid(Blue),
+        iconPadding = 8.dp
     ) {
         rootActivity.openUrlInBrowser(Constants.URL_IVY_TELEGRAM_INVITE)
     }
@@ -486,7 +516,7 @@ private fun HelpCenter() {
     val nav = navigation()
     SettingsDefaultButton(
         icon = R.drawable.ic_custom_education_m,
-        text = "Help Center",
+        text = stringResource(R.string.help_center),
     ) {
         nav.navigateTo(
             IvyWebView(url = Constants.URL_HELP_CENTER)
@@ -499,7 +529,7 @@ private fun Roadmap() {
     val nav = navigation()
     SettingsDefaultButton(
         icon = R.drawable.ic_custom_rocket_m,
-        text = "Roadmap",
+        text = stringResource(R.string.roadmap),
     ) {
         nav.navigateTo(
             IvyWebView(url = Constants.URL_ROADMAP)
@@ -513,7 +543,7 @@ private fun RequestFeature(
 ) {
     SettingsDefaultButton(
         icon = R.drawable.ic_custom_programming_m,
-        text = "Request a feature",
+        text = stringResource(R.string.request_a_feature),
     ) {
         onClick()
     }
@@ -521,12 +551,12 @@ private fun RequestFeature(
 
 @Composable
 private fun ContactSupport() {
-    val ivyActivity = LocalContext.current as RootActivity
+    val rootActivity = rootActivity()
     SettingsDefaultButton(
         icon = R.drawable.ic_support,
-        text = "Contact support",
+        text = stringResource(R.string.contact_support),
     ) {
-        ivyActivity.contactSupport()
+        rootActivity.openUrlInBrowser(Constants.URL_IVY_TELEGRAM_INVITE)
     }
 }
 
@@ -534,8 +564,9 @@ private fun ContactSupport() {
 private fun ProjectContributors() {
     val nav = navigation()
     SettingsDefaultButton(
-        icon = R.drawable.ic_custom_people_m,
-        text = "Project Contributors",
+        icon = R.drawable.ic_vue_people_people,
+        text = stringResource(R.string.project_contributors),
+        iconPadding = 6.dp
     ) {
         nav.navigateTo(
             IvyWebView(url = URL_IVY_CONTRIBUTORS)
@@ -556,11 +587,13 @@ private fun AppSwitch(
             onSetLockApp(!lockApp)
         }
     ) {
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(12.dp))
 
-        IvyIcon(
+        IvyIconScaled(
             icon = icon,
-            tint = UI.colors.pureInverse
+            tint = UI.colors.pureInverse,
+            iconScale = IconScale.M,
+            padding = 0.dp
         )
 
         Spacer(Modifier.width(8.dp))
@@ -568,7 +601,8 @@ private fun AppSwitch(
         Column(
             Modifier
                 .weight(1f)
-                .padding(top = 20.dp, bottom = 20.dp, end = 8.dp)) {
+                .padding(top = 20.dp, bottom = 20.dp, end = 8.dp)
+        ) {
             Text(
                 text = text,
                 style = UI.typo.b2.style(
@@ -631,7 +665,7 @@ private fun AccountCard(
             Spacer(Modifier.width(24.dp))
 
             Text(
-                text = "ACCOUNT",
+                text = stringResource(R.string.account_uppercase),
                 style = UI.typo.c.style(
                     fontWeight = FontWeight.Black,
                     color = UI.colors.gray
@@ -643,14 +677,14 @@ private fun AccountCard(
             if (user != null) {
                 AccountCardButton(
                     icon = R.drawable.ic_logout,
-                    text = "Logout"
+                    text = stringResource(R.string.logout)
                 ) {
                     onLogout()
                 }
             } else {
                 AccountCardButton(
                     icon = R.drawable.ic_login,
-                    text = "Login"
+                    text = stringResource(R.string.login)
                 ) {
                     onLogin()
                 }
@@ -691,11 +725,11 @@ private fun AccountCardUser(
         Spacer(Modifier.width(24.dp))
 
         if (user.profilePicture != null) {
-            Image(
+            AsyncImage(
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(32.dp),
-                painter = rememberCoilPainter(request = user.profilePicture),
+                model = user.profilePicture,
                 contentScale = ContentScale.FillBounds,
                 contentDescription = "profile picture"
             )
@@ -719,10 +753,12 @@ private fun AccountCardUser(
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(24.dp))
+        Spacer(Modifier.width(20.dp))
 
-        IvyIcon(
-            icon = R.drawable.ic_email
+        IvyIconScaled(
+            icon = R.drawable.ic_email,
+            iconScale = IconScale.S,
+            padding = 0.dp
         )
 
         Spacer(Modifier.width(12.dp))
@@ -745,17 +781,19 @@ private fun AccountCardUser(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(Modifier.width(24.dp))
+                Spacer(Modifier.width(20.dp))
 
-                IvyIcon(
+                IvyIconScaled(
                     icon = R.drawable.ic_data_synced,
-                    tint = Orange
+                    tint = Orange,
+                    iconScale = IconScale.S,
+                    padding = 0.dp
                 )
 
                 Spacer(Modifier.width(12.dp))
 
                 Text(
-                    text = "Syncing...",
+                    text = stringResource(R.string.syncing),
                     style = UI.typo.b2.style(
                         fontWeight = FontWeight.ExtraBold,
                         color = Orange
@@ -771,17 +809,19 @@ private fun AccountCardUser(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Spacer(Modifier.width(24.dp))
+                    Spacer(Modifier.width(20.dp))
 
-                    IvyIcon(
+                    IvyIconScaled(
                         icon = R.drawable.ic_data_synced,
-                        tint = Green
+                        tint = Green,
+                        iconScale = IconScale.S,
+                        padding = 0.dp
                     )
 
                     Spacer(Modifier.width(12.dp))
 
                     Text(
-                        text = "Data synced to cloud",
+                        text = stringResource(R.string.data_synced_to_cloud),
                         style = UI.typo.b2.style(
                             fontWeight = FontWeight.ExtraBold,
                             color = Green
@@ -795,7 +835,7 @@ private fun AccountCardUser(
                 IvyButton(
                     modifier = Modifier.padding(horizontal = 24.dp),
                     iconStart = R.drawable.ic_sync,
-                    text = "Tap to sync",
+                    text = stringResource(R.string.tap_to_sync),
                     backgroundGradient = GradientRed
                 ) {
                     onSync()
@@ -806,7 +846,7 @@ private fun AccountCardUser(
             IvyButton(
                 modifier = Modifier.padding(horizontal = 24.dp),
                 iconStart = R.drawable.ic_sync,
-                text = "Sync failed. Tap to sync",
+                text = stringResource(R.string.sync_failed),
                 backgroundGradient = GradientRed
             ) {
                 onSync()
@@ -828,13 +868,16 @@ private fun AccountCardLocalAccount(
     ) {
         Spacer(Modifier.width(20.dp))
 
-        IvyIcon(icon = R.drawable.ic_local_account)
+        IvyIconScaled(
+            icon = R.drawable.ic_local_account,
+            iconScale = IconScale.M
+        )
 
         Spacer(Modifier.width(12.dp))
 
         Text(
             modifier = Modifier.testTag("local_account_name"),
-            text = if (name != null && name.isNotBlank()) name else "Anonymous",
+            text = if (name != null && name.isNotBlank()) name else stringResource(R.string.anonymous),
             style = UI.typo.b2.style(
                 fontWeight = FontWeight.Bold
             )
@@ -866,8 +909,9 @@ private fun ExportCSV(
     onExportToCSV: () -> Unit
 ) {
     SettingsDefaultButton(
-        icon = R.drawable.ic_export_csv,
-        text = "Export to CSV",
+        icon = R.drawable.ic_vue_pc_printer,
+        text = stringResource(R.string.export_to_csv),
+        iconPadding = 6.dp
     ) {
         onExportToCSV()
     }
@@ -893,7 +937,7 @@ private fun TCAndPrivacyPolicy() {
                     uriHandler.openUri(Constants.URL_TC)
                 }
                 .padding(vertical = 14.dp),
-            text = "Terms & Conditions",
+            text = stringResource(R.string.terms_conditions),
             style = UI.typo.c.style(
                 fontWeight = FontWeight.ExtraBold,
                 color = UI.colors.pureInverse,
@@ -912,7 +956,7 @@ private fun TCAndPrivacyPolicy() {
                     uriHandler.openUri(Constants.URL_PRIVACY_POLICY)
                 }
                 .padding(vertical = 14.dp),
-            text = "Privacy Policy",
+            text = stringResource(R.string.privacy_policy),
             style = UI.typo.c.style(
                 fontWeight = FontWeight.ExtraBold,
                 color = UI.colors.pureInverse,
@@ -931,6 +975,7 @@ private fun SettingsPrimaryButton(
     hasShadow: Boolean = false,
     backgroundGradient: Gradient = Gradient.solid(UI.colors.medium),
     textColor: Color = White,
+    iconPadding: Dp = 0.dp,
     onClick: () -> Unit
 ) {
     SettingsButtonRow(
@@ -938,11 +983,13 @@ private fun SettingsPrimaryButton(
         backgroundGradient = backgroundGradient,
         onClick = onClick
     ) {
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(12.dp))
 
-        IvyIcon(
+        IvyIconScaled(
             icon = icon,
-            tint = textColor
+            tint = textColor,
+            iconScale = IconScale.M,
+            padding = iconPadding
         )
 
         Spacer(Modifier.width(8.dp))
@@ -1002,8 +1049,9 @@ private fun AccountCardButton(
     ) {
         Spacer(Modifier.width(12.dp))
 
-        IvyIcon(
-            icon = icon
+        IvyIconScaled(
+            icon = icon,
+            iconScale = IconScale.M
         )
 
         Spacer(Modifier.width(4.dp))
@@ -1038,15 +1086,19 @@ private fun CurrencyButton(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(20.dp))
+        Spacer(Modifier.width(12.dp))
 
-        IvyIcon(icon = R.drawable.ic_currency)
+        IvyIconScaled(
+            icon = R.drawable.ic_currency,
+            iconScale = IconScale.M,
+            padding = 0.dp
+        )
 
         Spacer(Modifier.width(8.dp))
 
         Text(
             modifier = Modifier.padding(vertical = 20.dp),
-            text = "Set currency",
+            text = stringResource(R.string.set_currency),
             style = UI.typo.b2.style(
                 color = UI.colors.pureInverse,
                 fontWeight = FontWeight.Bold
@@ -1065,7 +1117,10 @@ private fun CurrencyButton(
 
         Spacer(Modifier.height(4.dp))
 
-        IvyIcon(icon = R.drawable.ic_arrow_right)
+        IvyIconScaled(
+            icon = R.drawable.ic_arrow_right,
+            iconScale = IconScale.M
+        )
 
         Spacer(Modifier.width(24.dp))
     }
@@ -1092,13 +1147,15 @@ private fun SettingsSectionDivider(
 private fun SettingsDefaultButton(
     @DrawableRes icon: Int,
     text: String,
+    iconPadding: Dp = 0.dp,
     onClick: () -> Unit
 ) {
     SettingsPrimaryButton(
         icon = icon,
         text = text,
         backgroundGradient = Gradient.solid(UI.colors.medium),
-        textColor = UI.colors.pureInverse
+        textColor = UI.colors.pureInverse,
+        iconPadding = iconPadding
     ) {
         onClick()
     }

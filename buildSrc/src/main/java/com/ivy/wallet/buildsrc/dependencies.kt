@@ -22,8 +22,8 @@ import org.gradle.kotlin.dsl.project
 
 object Project {
     //Version
-    const val versionName = "3.1.2-fast"
-    const val versionCode = 104
+    const val versionName = "4.1.5"
+    const val versionCode = 111
 
     //Compile SDK & Build Tools
     const val compileSdkVersion = 31
@@ -46,6 +46,8 @@ fun DependencyHandler.appModuleDependencies(
     kotlinVersion: String = GlobalVersions.kotlinVersion
 ) {
     implementation(project(":ivy-design"))
+
+    implementation("com.github.ILIYANGERMANOV:ivy-frp:0.9.0")
 
     Kotlin(version = kotlinVersion)
     Coroutines(version = "1.5.0")
@@ -90,8 +92,6 @@ fun DependencyHandler.ivyDesignModuleDependencies(
     AndroidX()
     Lifecycle(version = "2.3.1")
 }
-
-
 //---------------------------------------------------------------------------------
 
 
@@ -123,6 +123,8 @@ fun DependencyHandler.Compose(version: String) {
 
     Accompanist(version = "0.15.0")
 
+    Coil()
+
     ComposeTesting(version = version)
 }
 
@@ -134,6 +136,10 @@ fun DependencyHandler.Accompanist(version: String) {
     implementation("com.google.accompanist:accompanist-coil:$version")
     implementation("com.google.accompanist:accompanist-insets:$version")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.24.4-alpha")
+}
+
+fun DependencyHandler.Coil() {
+    implementation("io.coil-kt:coil-compose:2.0.0")
 }
 
 /**
@@ -268,6 +274,9 @@ fun DependencyHandler.Coroutines(
 
     //URL: https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-play-services
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$version")
+
+    //URL: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-test/
+    androidTestImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:$version")
 }
 
 fun DependencyHandler.ThirdParty() {

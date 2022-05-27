@@ -1,29 +1,41 @@
 package com.ivy.wallet.ui.statistic.level2
 
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import arrow.core.toOption
-import com.ivy.design.navigation.Navigation
+import com.ivy.frp.test.TestIdlingResource
+import com.ivy.frp.then
+import com.ivy.frp.view.navigation.Navigation
+import com.ivy.wallet.R
+import com.ivy.wallet.domain.action.account.AccTrnsAct
+import com.ivy.wallet.domain.action.account.AccountsAct
+import com.ivy.wallet.domain.action.account.CalcAccBalanceAct
+import com.ivy.wallet.domain.action.account.CalcAccIncomeExpenseAct
+import com.ivy.wallet.domain.action.category.CategoriesAct
+import com.ivy.wallet.domain.action.exchange.ExchangeAct
+import com.ivy.wallet.domain.action.settings.BaseCurrencyAct
+import com.ivy.wallet.domain.action.transaction.CalcTrnsIncomeExpenseAct
+import com.ivy.wallet.domain.action.transaction.TrnsWithDateDivsAct
 import com.ivy.wallet.domain.data.TransactionHistoryItem
 import com.ivy.wallet.domain.data.TransactionType
-import com.ivy.wallet.domain.data.entity.Account
-import com.ivy.wallet.domain.data.entity.Category
-import com.ivy.wallet.domain.data.entity.Transaction
-import com.ivy.wallet.domain.fp.account.calculateAccountBalance
-import com.ivy.wallet.domain.fp.account.calculateAccountIncomeExpense
-import com.ivy.wallet.domain.fp.data.WalletDAOs
-import com.ivy.wallet.domain.fp.exchangeToBaseCurrency
-import com.ivy.wallet.domain.fp.wallet.baseCurrencyCode
-import com.ivy.wallet.domain.fp.wallet.withDateDividers
-import com.ivy.wallet.domain.logic.*
-import com.ivy.wallet.domain.logic.currency.ExchangeRatesLogic
-import com.ivy.wallet.domain.sync.uploader.AccountUploader
-import com.ivy.wallet.domain.sync.uploader.CategoryUploader
+import com.ivy.wallet.domain.data.core.Account
+import com.ivy.wallet.domain.data.core.Category
+import com.ivy.wallet.domain.data.core.Transaction
+import com.ivy.wallet.domain.deprecated.logic.*
+import com.ivy.wallet.domain.deprecated.logic.currency.ExchangeRatesLogic
+import com.ivy.wallet.domain.deprecated.sync.uploader.AccountUploader
+import com.ivy.wallet.domain.deprecated.sync.uploader.CategoryUploader
+import com.ivy.wallet.domain.pure.data.WalletDAOs
+import com.ivy.wallet.domain.pure.exchange.ExchangeData
+import com.ivy.wallet.io.persistence.SharedPrefs
 import com.ivy.wallet.io.persistence.dao.*
+import com.ivy.wallet.stringRes
 import com.ivy.wallet.ui.ItemStatistic
 import com.ivy.wallet.ui.IvyWalletCtx
 import com.ivy.wallet.ui.onboarding.model.TimePeriod
 import com.ivy.wallet.ui.onboarding.model.toCloseTimeRange
+import com.ivy.wallet.ui.theme.RedLight
 import com.ivy.wallet.utils.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +62,16 @@ class ItemStatisticViewModel @Inject constructor(
     private val accountCreator: AccountCreator,
     private val plannedPaymentsLogic: PlannedPaymentsLogic,
     private val exchangeRatesLogic: ExchangeRatesLogic,
+    private val sharedPrefs: SharedPrefs,
+    private val categoriesAct: CategoriesAct,
+    private val accountsAct: AccountsAct,
+    private val accTrnsAct: AccTrnsAct,
+    private val trnsWithDateDivsAct: TrnsWithDateDivsAct,
+    private val baseCurrencyAct: BaseCurrencyAct,
+    private val calcAccBalanceAct: CalcAccBalanceAct,
+    private val calcAccIncomeExpenseAct: CalcAccIncomeExpenseAct,
+    private val calcTrnsIncomeExpenseAct: CalcTrnsIncomeExpenseAct,
+    private val exchangeAct: ExchangeAct
 ) : ViewModel() {
 
     private val _period = MutableStateFlow(ivyContext.selectedPeriod)
@@ -118,6 +140,9 @@ class ItemStatisticViewModel @Inject constructor(
     private val _initWithTransactions = MutableStateFlow(false)
     val initWithTransactions = _initWithTransactions.readOnly()
 
+    private val _treatTransfersAsIncomeExpense = MutableStateFlow(false)
+    val treatTransfersAsIncomeExpense = _treatTransfersAsIncomeExpense.readOnly()
+
     fun start(
         screen: ItemStatistic,
         period: TimePeriod? = ivyContext.selectedPeriod,
@@ -132,13 +157,15 @@ class ItemStatisticViewModel @Inject constructor(
         viewModelScope.launch {
             _period.value = period ?: ivyContext.selectedPeriod
 
-            val baseCurrency = ioThread { baseCurrencyCode(settingsDao) }
+            val baseCurrency = baseCurrencyAct(Unit)
             _baseCurrency.value = baseCurrency
             _currency.value = baseCurrency
 
-            _categories.value = ioThread { categoryDao.findAll() }
-            _accounts.value = ioThread { accountDao.findAll() }
+            _categories.value = categoriesAct(Unit)
+            _accounts.value = accountsAct(Unit)
             _initWithTransactions.value = false
+            _treatTransfersAsIncomeExpense.value =
+                sharedPrefs.getBoolean(SharedPrefs.TRANSFERS_AS_INCOME_EXPENSE, false)
 
             when {
                 screen.accountId != null -> {
@@ -157,7 +184,7 @@ class ItemStatisticViewModel @Inject constructor(
                     )
                 }
                 screen.unspecifiedCategory == true && screen.transactions.isNotEmpty() -> {
-                    initForUnspecifiedCategoryWithTransactions(
+                    initForAccountTransfersCategory(
                         screen.categoryId,
                         screen.accountIdFilterList,
                         screen.transactions
@@ -175,7 +202,7 @@ class ItemStatisticViewModel @Inject constructor(
 
     private suspend fun initForAccount(accountId: UUID) {
         val account = ioThread {
-            accountDao.findById(accountId) ?: error("account not found")
+            accountDao.findById(accountId)?.toDomain() ?: error("account not found")
         }
         _account.value = account
         val range = period.value.toRange(ivyContext.startDayOfMonth)
@@ -184,37 +211,50 @@ class ItemStatisticViewModel @Inject constructor(
             _currency.value = account.currency!!
         }
 
-        val balance = ioThread {
-            calculateAccountBalance(
-                transactionDao = walletDAOs.transactionDao,
-                accountId = accountId
-            ).toDouble()
-        }
+        val balance = calcAccBalanceAct(
+            CalcAccBalanceAct.Input(
+                account = account
+            )
+        ).balance.toDouble()
         _balance.value = balance
         if (baseCurrency.value != currency.value) {
-            _balanceBaseCurrency.value = ioThread {
-                exchangeToBaseCurrency(
-                    exchangeRateDao = exchangeRateDao,
-                    baseCurrencyCode = baseCurrency.value,
-                    fromCurrencyCode = currency.value.toOption(),
-                    fromAmount = balance.toBigDecimal()
-                ).orNull()?.toDouble()
-            }
+            _balanceBaseCurrency.value = exchangeAct(
+                ExchangeAct.Input(
+                    data = ExchangeData(
+                        baseCurrency = baseCurrency.value,
+                        fromCurrency = currency.value.toOption()
+                    ),
+                    amount = balance.toBigDecimal()
+                )
+            ).orNull()?.toDouble()
         }
 
-        val incomeExpensePair = ioThread {
-            calculateAccountIncomeExpense(
-                transactionDao = transactionDao,
-                accountId = accountId,
-                range = range.toCloseTimeRange()
+        val includeTransfersInCalc =
+            sharedPrefs.getBoolean(SharedPrefs.TRANSFERS_AS_INCOME_EXPENSE, false)
+
+        val incomeExpensePair = calcAccIncomeExpenseAct(
+            CalcAccIncomeExpenseAct.Input(
+                account = account,
+                range = range.toCloseTimeRange(),
+                includeTransfersInCalc = includeTransfersInCalc
             )
-        }
+        ).incomeExpensePair
         _income.value = incomeExpensePair.income.toDouble()
         _expenses.value = incomeExpensePair.expense.toDouble()
 
-        _history.value = ioThread {
-            accountLogic.historyForAccount(account, range)
-        }
+        _history.value = (accTrnsAct then {
+            trnsWithDateDivsAct(
+                TrnsWithDateDivsAct.Input(
+                    baseCurrency = baseCurrency.value,
+                    transactions = it
+                )
+            )
+        })(
+            AccTrnsAct.Input(
+                accountId = account.id,
+                range = range.toCloseTimeRange()
+            )
+        )
 
         //Upcoming
         _upcomingIncome.value = ioThread {
@@ -242,7 +282,7 @@ class ItemStatisticViewModel @Inject constructor(
     private suspend fun initForCategory(categoryId: UUID, accountFilterList: List<UUID>) {
         val accountFilterSet = accountFilterList.toSet()
         val category = ioThread {
-            categoryDao.findById(categoryId) ?: error("category not found")
+            categoryDao.findById(categoryId)?.toDomain() ?: error("category not found")
         }
         _category.value = category
         val range = period.value.toRange(ivyContext.startDayOfMonth)
@@ -306,7 +346,7 @@ class ItemStatisticViewModel @Inject constructor(
 
             val accountFilterSet = accountFilterList.toSet()
             val category = ioThread {
-                categoryDao.findById(categoryId) ?: error("category not found")
+                categoryDao.findById(categoryId)?.toDomain() ?: error("category not found")
             }
             _category.value = category
             val range = period.value.toRange(ivyContext.startDayOfMonth)
@@ -419,66 +459,37 @@ class ItemStatisticViewModel @Inject constructor(
         _overdue.value = ioThread { categoryLogic.overdueUnspecified(range) }
     }
 
-    private suspend fun initForUnspecifiedCategoryWithTransactions(
+    private suspend fun initForAccountTransfersCategory(
         categoryId: UUID?,
         accountFilterList: List<UUID>,
         transactions: List<Transaction>
     ) {
         _initWithTransactions.value = true
+        _category.value = Category(stringRes(R.string.account_transfers), RedLight.toArgb(), "transfer")
         val accountFilterIdSet = accountFilterList.toHashSet()
-
-        val accountTransferCategoryEnabled = categoryId != null
-        if (accountTransferCategoryEnabled)
-            _category.value = Category("Account Transfers")
-
         val trans = transactions.filter {
             it.categoryId == null && (accountFilterIdSet.contains(it.accountId) || accountFilterIdSet.contains(
                 it.toAccountId
-            ))
+            )) && it.type == TransactionType.TRANSFER
         }
 
-        val incomeTrans = trans.filter {
-            it.type == TransactionType.INCOME
-        }
-
-        val expenseTrans = trans.filter {
-            it.type == TransactionType.EXPENSE
-        }
-
-        _income.value = ioThread {
-            categoryLogic.calculateCategoryIncome(
-                incomeTransaction = incomeTrans,
-                accountFilterSet = accountFilterIdSet
+        val historyIncomeExpense = calcTrnsIncomeExpenseAct(
+            CalcTrnsIncomeExpenseAct.Input(
+                transactions = trans,
+                accounts = accountFilterList.mapNotNull { accID -> accounts.value.find { it.id == accID } },
+                baseCurrency = baseCurrency.value
             )
-        }
+        )
 
-        _expenses.value = ioThread {
-            categoryLogic.calculateCategoryExpenses(
-                expenseTransactions = expenseTrans,
-                accountFilterSet = accountFilterIdSet
+        _income.value = historyIncomeExpense.transferIncome.toDouble()
+        _expenses.value = historyIncomeExpense.transferExpense.toDouble()
+        _balance.value = _income.value - _expenses.value
+        _history.value = trnsWithDateDivsAct(
+            TrnsWithDateDivsAct.Input(
+                baseCurrency = baseCurrency.value,
+                transactions = transactions
             )
-        }
-
-        _balance.value = scopedIOThread {
-            _income.value - _expenses.value +
-                    if (accountTransferCategoryEnabled)
-                        trans.filter { it.type == TransactionType.TRANSFER }
-                        .sumOf {
-                            exchangeRatesLogic.toAmountBaseCurrency(
-                                transaction = it,
-                                baseCurrency = baseCurrency.value,
-                                accounts = walletDAOs.accountDao.findAll()
-                            )
-                        } else 0.0
-        }
-
-        _history.value = ioThread {
-            trans.withDateDividers(
-                exchangeRateDao = exchangeRateDao,
-                accountDao = walletDAOs.accountDao,
-                baseCurrencyCode = baseCurrency.value
-            )
-        }
+        )
     }
 
     private fun reset() {

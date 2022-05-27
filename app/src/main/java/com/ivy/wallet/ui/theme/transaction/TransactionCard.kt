@@ -15,25 +15,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ivy.design.api.navigation
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.l1_buildingBlocks.IvyText
+import com.ivy.design.l1_buildingBlocks.SpacerHor
+import com.ivy.frp.view.navigation.navigation
 import com.ivy.wallet.R
 import com.ivy.wallet.domain.data.TransactionType
-import com.ivy.wallet.domain.data.entity.Account
-import com.ivy.wallet.domain.data.entity.Category
-import com.ivy.wallet.domain.data.entity.Transaction
+import com.ivy.wallet.domain.data.core.Account
+import com.ivy.wallet.domain.data.core.Category
+import com.ivy.wallet.domain.data.core.Transaction
 import com.ivy.wallet.ui.ItemStatistic
 import com.ivy.wallet.ui.IvyWalletPreview
 import com.ivy.wallet.ui.theme.*
 import com.ivy.wallet.ui.theme.components.ItemIconSDefaultIcon
 import com.ivy.wallet.ui.theme.components.IvyButton
 import com.ivy.wallet.ui.theme.components.IvyIcon
-import com.ivy.wallet.ui.theme.components.getCustomIconIdS
 import com.ivy.wallet.ui.theme.wallet.AmountCurrencyB1
 import com.ivy.wallet.utils.*
 import java.time.LocalDateTime
@@ -47,9 +49,12 @@ fun LazyItemScope.TransactionCard(
     transaction: Transaction,
 
     onPayOrGet: (Transaction) -> Unit,
+    onSkipTransaction: (Transaction) -> Unit = {},
 
     onClick: (Transaction) -> Unit,
 ) {
+    val isLightTheme = UI.colors.pure == White
+
     Spacer(Modifier.height(12.dp))
 
     Column(
@@ -84,7 +89,10 @@ fun LazyItemScope.TransactionCard(
 
             Text(
                 modifier = Modifier.padding(horizontal = 24.dp),
-                text = "DUE ON ${transaction.dueDate.formatNicely()}".uppercase(),
+                text = stringResource(
+                    R.string.due_on,
+                    transaction.dueDate.formatNicely()
+                ).uppercase(),
                 style = UI.typo.nC.style(
                     color = if (transaction.dueDate.isAfter(timeNowUTC()))
                         Orange else UI.colors.gray,
@@ -111,14 +119,15 @@ fun LazyItemScope.TransactionCard(
 
         }
 
-        if (transaction.description.isNotNullOrBlank()){
+        if (transaction.description.isNotNullOrBlank()) {
             Spacer(
                 Modifier.height(
                     if (transaction.title.isNotNullOrBlank()) 4.dp else 8.dp
                 )
             )
 
-            Text(text = transaction.description!!,
+            Text(
+                text = transaction.description!!,
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = UI.typo.nC.style(
                     color = UI.colors.gray,
@@ -139,13 +148,13 @@ fun LazyItemScope.TransactionCard(
             transactionType = transaction.type,
             dueDate = transaction.dueDate,
             currency = transactionCurrency,
-            amount = transaction.amount
+            amount = transaction.amount.toDouble()
         )
 
-        if (transaction.type == TransactionType.TRANSFER && transaction.toAmount != null && toAccountCurrency != transactionCurrency) {
+        if (transaction.type == TransactionType.TRANSFER && toAccountCurrency != transactionCurrency) {
             Text(
                 modifier = Modifier.padding(start = 68.dp),
-                text = transaction.toAmount.format(2) + " $toAccountCurrency",
+                text = "${transaction.toAmount.toDouble().format(2)} $toAccountCurrency",
                 style = UI.typo.nB2.style(
                     color = Gray,
                     fontWeight = FontWeight.Normal
@@ -158,20 +167,43 @@ fun LazyItemScope.TransactionCard(
             Spacer(Modifier.height(16.dp))
 
             val isExpense = transaction.type == TransactionType.EXPENSE
-            IvyButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                text = if (isExpense) "Pay" else "Get",
-                wrapContentMode = false,
-                backgroundGradient = if (isExpense) gradientExpenses() else GradientGreen,
-                textStyle = UI.typo.b2.style(
-                    color = if (isExpense) UI.colors.pure else White,
-                    fontWeight = FontWeight.Bold
-                )
-            ) {
-                onPayOrGet(transaction)
+            Row {
+                IvyButton(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 24.dp),
+                    text = stringResource(R.string.skip),
+                    wrapContentMode = false,
+                    backgroundGradient = if (isLightTheme) Gradient(White, White) else Gradient(
+                        Black,
+                        Black
+                    ),
+                    textStyle = UI.typo.b2.style(
+                        color = if (isLightTheme) Black else White,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    onSkipTransaction(transaction)
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                IvyButton(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 24.dp),
+                    text = if (isExpense) stringResource(R.string.pay) else stringResource(R.string.get),
+                    wrapContentMode = false,
+                    backgroundGradient = if (isExpense) gradientExpenses() else GradientGreen,
+                    textStyle = UI.typo.b2.style(
+                        color = if (isExpense) UI.colors.pure else White,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    onPayOrGet(transaction)
+                }
             }
+
         }
 
         Spacer(Modifier.height(20.dp))
@@ -197,24 +229,14 @@ private fun TransactionHeaderRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val category =
-                transaction.smartCategoryId()
+                transaction.categoryId
                     ?.let { targetId -> categories.find { it.id == targetId } }
             if (category != null) {
-                IvyButton(
+                TransactionBadge(
                     text = category.name,
-                    backgroundGradient = Gradient.solid(category.color.toComposeColor()),
-                    hasGlow = false,
-                    iconTint = findContrastTextColor(category.color.toComposeColor()),
-                    iconStart = getCustomIconIdS(
-                        iconName = category.icon,
-                        defaultIcon = R.drawable.ic_custom_category_s
-                    ),
-                    textStyle = UI.typo.c.style(
-                        color = findContrastTextColor(category.color.toComposeColor()),
-                        fontWeight = FontWeight.ExtraBold
-                    ),
-                    padding = 8.dp,
-                    iconEdgePadding = 10.dp
+                    backgroundColor = category.color.toComposeColor(),
+                    icon = category.icon,
+                    defaultIcon = R.drawable.ic_custom_category_s
                 ) {
                     nav.navigateTo(
                         ItemStatistic(
@@ -228,22 +250,11 @@ private fun TransactionHeaderRow(
             }
 
             val account = accounts.find { it.id == transaction.accountId }
-            //TODO: Rework that by using dedicated component for "Account"
-            IvyButton(
-                backgroundGradient = Gradient.solid(UI.colors.pure),
-                hasGlow = false,
-                iconTint = UI.colors.pureInverse,
-                text = account?.name ?: "deleted",
-                iconStart = getCustomIconIdS(
-                    iconName = account?.icon,
-                    defaultIcon = R.drawable.ic_custom_account_s
-                ),
-                textStyle = UI.typo.c.style(
-                    color = UI.colors.pureInverse,
-                    fontWeight = FontWeight.ExtraBold
-                ),
-                padding = 8.dp,
-                iconEdgePadding = 10.dp
+            TransactionBadge(
+                text = account?.name ?: stringResource(R.string.deleted),
+                backgroundColor = UI.colors.pure,
+                icon = account?.icon,
+                defaultIcon = R.drawable.ic_custom_account_s
             ) {
                 account?.let {
                     nav.navigateTo(
@@ -255,6 +266,49 @@ private fun TransactionHeaderRow(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TransactionBadge(
+    text: String,
+    backgroundColor: Color,
+    icon: String?,
+    @DrawableRes
+    defaultIcon: Int,
+
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .clip(UI.shapes.rFull)
+            .background(backgroundColor, UI.shapes.rFull)
+            .clickable {
+                onClick()
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SpacerHor(width = 8.dp)
+
+        val contrastColor = findContrastTextColor(backgroundColor)
+
+        ItemIconSDefaultIcon(
+            iconName = icon,
+            defaultIcon = defaultIcon,
+            tint = contrastColor
+        )
+
+        SpacerHor(width = 4.dp)
+
+        IvyText(
+            text = text,
+            typo = UI.typo.c.style(
+                color = contrastColor,
+                fontWeight = FontWeight.ExtraBold
+            )
+        )
+
+        SpacerHor(width = 20.dp)
     }
 }
 
@@ -282,7 +336,8 @@ private fun TransferHeader(
         Text(
             modifier = Modifier
                 .padding(vertical = 8.dp),
-            text = account?.name ?: "null",
+            // used toString() in case of null
+            text = account?.name.toString(),
             style = UI.typo.c.style(
                 fontWeight = FontWeight.ExtraBold,
                 color = UI.colors.pureInverse
@@ -306,7 +361,8 @@ private fun TransferHeader(
         Text(
             modifier = Modifier
                 .padding(vertical = 8.dp),
-            text = toAccount?.name ?: "null",
+            // used toString() in case of null
+            text = toAccount?.name.toString(),
             style = UI.typo.c.style(
                 fontWeight = FontWeight.ExtraBold,
                 color = UI.colors.pureInverse
@@ -326,6 +382,7 @@ fun TypeAmountCurrency(
 ) {
 
     Row(
+        modifier = Modifier.testTag("type_amount_currency"),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Spacer(Modifier.width(24.dp))
@@ -424,7 +481,7 @@ private fun PreviewUpcomingExpense() {
                         accountId = cash.id,
                         title = "Lidl pazar",
                         categoryId = food.id,
-                        amount = 250.75,
+                        amount = 250.75.toBigDecimal(),
                         dueDate = timeNowUTC().plusDays(5),
                         dateTime = null,
                         type = TransactionType.EXPENSE,
@@ -455,7 +512,7 @@ private fun PreviewOverdueExpense() {
                         accountId = cash.id,
                         title = "Rent",
                         categoryId = food.id,
-                        amount = 500.0,
+                        amount = 500.0.toBigDecimal(),
                         dueDate = timeNowUTC().minusDays(5),
                         dateTime = null,
                         type = TransactionType.EXPENSE
@@ -490,7 +547,7 @@ private fun PreviewNormalExpense() {
                         accountId = cash.id,
                         title = "Близкия магазин",
                         categoryId = food.id,
-                        amount = 32.51,
+                        amount = 32.51.toBigDecimal(),
                         dateTime = timeNowUTC(),
                         type = TransactionType.EXPENSE
                     ),
@@ -519,7 +576,7 @@ private fun PreviewIncome() {
                         accountId = cash.id,
                         title = "Qredo Salary May",
                         categoryId = category.id,
-                        amount = 8049.70,
+                        amount = 8049.70.toBigDecimal(),
                         dateTime = timeNowUTC(),
                         type = TransactionType.INCOME
                     ),
@@ -549,7 +606,44 @@ private fun PreviewTransfer() {
                         accountId = acc1.id,
                         toAccountId = acc2.id,
                         title = "Top-up revolut",
-                        amount = 1000.0,
+                        amount = 1000.0.toBigDecimal(),
+                        dateTime = timeNowUTC(),
+                        type = TransactionType.TRANSFER
+                    ),
+                    onPayOrGet = {},
+                ) {
+
+                }
+            }
+        }
+    }
+}
+
+
+@Preview
+@Composable
+private fun PreviewTransfer_differentCurrency() {
+    IvyWalletPreview {
+        LazyColumn(Modifier.fillMaxSize()) {
+            val acc1 = Account(name = "DSK Bank", color = Green.toArgb(), icon = "bank")
+            val acc2 = Account(
+                name = "Revolut",
+                currency = "EUR",
+                color = IvyDark.toArgb(),
+                icon = "revolut"
+            )
+
+            item {
+                TransactionCard(
+                    baseCurrency = "BGN",
+                    categories = emptyList(),
+                    accounts = listOf(acc1, acc2),
+                    transaction = Transaction(
+                        accountId = acc1.id,
+                        toAccountId = acc2.id,
+                        title = "Top-up revolut",
+                        amount = 1000.0.toBigDecimal(),
+                        toAmount = 510.toBigDecimal(),
                         dateTime = timeNowUTC(),
                         type = TransactionType.TRANSFER
                     ),

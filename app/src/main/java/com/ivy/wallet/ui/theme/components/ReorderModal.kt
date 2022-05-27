@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -40,7 +41,7 @@ fun <T : Reorderable> BoxScope.ReorderModalSingleType(
     TitleContent: @Composable ColumnScope.() -> Unit = {
         Text(
             modifier = Modifier.padding(start = 32.dp),
-            text = "Reorder",
+            text = stringResource(R.string.reorder),
             style = UI.typo.b1.style(
                 UI.colors.pureInverse,
                 FontWeight.ExtraBold
@@ -80,7 +81,7 @@ fun <T : Reorderable> BoxScope.ReorderModal(
     TitleContent: @Composable ColumnScope.() -> Unit = {
         Text(
             modifier = Modifier.padding(start = 32.dp),
-            text = "Reorder",
+            text = stringResource(R.string.reorder),
             style = UI.typo.b1.style(
                 UI.colors.pureInverse,
                 FontWeight.ExtraBold
@@ -98,6 +99,9 @@ fun <T : Reorderable> BoxScope.ReorderModal(
     ItemContent: @Composable RowScope.(Int, Any) -> Unit
 ) {
     var items by remember(id, initialItems) { mutableStateOf(initialItems) }
+    var reOrderedList :List<Any>? by remember {
+        mutableStateOf(null)
+    }
     var orderNumUpdates by remember {
         mutableStateOf(
             mapOf<T, Double>()
@@ -122,7 +126,7 @@ fun <T : Reorderable> BoxScope.ReorderModal(
                     onUpdateItemOrderNum(items, item, newOrderNum)
                 }
 
-                onReordered?.invoke(items)
+                onReordered?.invoke(reOrderedList ?: items)
                 dismiss()
             }
         }
@@ -155,6 +159,7 @@ fun <T : Reorderable> BoxScope.ReorderModal(
                         },
                         onReorderInternalList = { reorderedItems ->
                             items = reorderedItems
+                            reOrderedList = reorderedItems
                         }
                     )
                     layoutManager = LinearLayoutManager(it)

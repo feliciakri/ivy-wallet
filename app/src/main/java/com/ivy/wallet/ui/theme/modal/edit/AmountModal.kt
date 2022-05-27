@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,7 +24,6 @@ import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.wallet.R
 import com.ivy.wallet.ui.IvyWalletPreview
-import com.ivy.wallet.ui.theme.Black
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.modal.IvyModal
@@ -71,6 +71,7 @@ fun BoxWithConstraintsScope.AmountModal(
                     onClick = {
                         calculatorModalVisible = true
                     })
+                    .testTag("btn_calculator")
                     .padding(all = 4.dp),
                 icon = R.drawable.ic_custom_calculator_m,
                 tint = UI.colors.pureInverse
@@ -79,7 +80,7 @@ fun BoxWithConstraintsScope.AmountModal(
             Spacer(Modifier.width(16.dp))
 
             ModalPositiveButton(
-                text = "Enter",
+                text = stringResource(R.string.enter),
                 iconStart = R.drawable.ic_check
             ) {
                 try {
@@ -147,15 +148,15 @@ fun AmountCurrency(
         Spacer(Modifier.weight(1f))
 
         Text(
-            text = if (amount.isBlank()) "0" else amount,
+            text = amount.ifBlank { "0" },
             style = UI.typo.nH1.style(
                 fontWeight = FontWeight.Bold,
                 color = UI.colors.pureInverse
             )
         )
-
+        Spacer(Modifier.width(4.dp))
         Text(
-            text = " $currency",
+            text = currency,
             style = UI.typo.nH2.style(
                 fontWeight = FontWeight.Normal,
                 color = UI.colors.pureInverse
@@ -177,6 +178,7 @@ fun AmountInput(
     var firstInput by remember { mutableStateOf(true) }
 
     AmountKeyboard(
+        forCalculator = false,
         onNumberPressed = {
             if (firstInput) {
                 setAmount(it)
@@ -242,6 +244,7 @@ private fun formatNumber(number: String): String? {
 
 @Composable
 fun AmountKeyboard(
+    forCalculator: Boolean,
     ZeroRow: (@Composable RowScope.() -> Unit)? = null,
     FirstRowExtra: (@Composable RowScope.() -> Unit)? = null,
     SecondRowExtra: (@Composable RowScope.() -> Unit)? = null,
@@ -270,21 +273,24 @@ fun AmountKeyboard(
         horizontalArrangement = Arrangement.Center
     ) {
         CircleNumberButton(
-            value = "1",
+            forCalculator = forCalculator,
+            value = "7",
             onNumberPressed = onNumberPressed
         )
 
         Spacer(Modifier.width(16.dp))
 
         CircleNumberButton(
-            value = "2",
+            forCalculator = forCalculator,
+            value = "8",
             onNumberPressed = onNumberPressed
         )
 
         Spacer(Modifier.width(16.dp))
 
         CircleNumberButton(
-            value = "3",
+            forCalculator = forCalculator,
+            value = "9",
             onNumberPressed = onNumberPressed
         )
 
@@ -303,6 +309,7 @@ fun AmountKeyboard(
         horizontalArrangement = Arrangement.Center
     ) {
         CircleNumberButton(
+            forCalculator = forCalculator,
             value = "4",
             onNumberPressed = onNumberPressed
         )
@@ -310,6 +317,7 @@ fun AmountKeyboard(
         Spacer(Modifier.width(16.dp))
 
         CircleNumberButton(
+            forCalculator = forCalculator,
             value = "5",
             onNumberPressed = onNumberPressed
         )
@@ -317,6 +325,7 @@ fun AmountKeyboard(
         Spacer(Modifier.width(16.dp))
 
         CircleNumberButton(
+            forCalculator = forCalculator,
             value = "6",
             onNumberPressed = onNumberPressed
         )
@@ -336,21 +345,24 @@ fun AmountKeyboard(
         horizontalArrangement = Arrangement.Center
     ) {
         CircleNumberButton(
-            value = "7",
+            forCalculator = forCalculator,
+            value = "1",
             onNumberPressed = onNumberPressed
         )
 
         Spacer(Modifier.width(16.dp))
 
         CircleNumberButton(
-            value = "8",
+            forCalculator = forCalculator,
+            value = "2",
             onNumberPressed = onNumberPressed
         )
 
         Spacer(Modifier.width(16.dp))
 
         CircleNumberButton(
-            value = "9",
+            forCalculator = forCalculator,
+            value = "3",
             onNumberPressed = onNumberPressed
         )
 
@@ -370,7 +382,8 @@ fun AmountKeyboard(
     ) {
         KeypadCircleButton(
             text = localDecimalSeparator(),
-            testTag = "key_decimal_separator"
+            testTag = if (forCalculator)
+                "calc_key_decimal_separator" else "key_decimal_separator"
         ) {
             onDecimalPoint()
         }
@@ -378,6 +391,7 @@ fun AmountKeyboard(
         Spacer(Modifier.width(16.dp))
 
         CircleNumberButton(
+            forCalculator = forCalculator,
             value = "0",
             onNumberPressed = onNumberPressed
         )
@@ -402,12 +416,14 @@ fun AmountKeyboard(
 
 @Composable
 fun CircleNumberButton(
+    forCalculator: Boolean,
     value: String,
     onNumberPressed: (String) -> Unit,
 ) {
     KeypadCircleButton(
         text = value,
-        testTag = "key_${value}",
+        testTag = if (forCalculator)
+            "calc_key_${value}" else "key_${value}",
         onClick = {
             onNumberPressed(value)
         }
@@ -443,11 +459,11 @@ private fun circleButtonModifier(
 ): Modifier {
     return Modifier
         .size(size)
-        .drawColoredShadow(
-            color = Black,
-            alpha = if (UI.colors.isLight) 0.05f else 0.5f,
-            borderRadius = 32.dp
-        )
+//        .drawColoredShadow(
+//            color = Black,
+//            alpha = if (UI.colors.isLight) 0.05f else 0.5f,
+//            borderRadius = 32.dp
+//        )
         .clip(CircleShape)
         .clickable(
             onClick = onClick

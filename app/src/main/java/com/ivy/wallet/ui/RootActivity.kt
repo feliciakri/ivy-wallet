@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,22 +39,24 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.ivy.design.api.IvyUI
-import com.ivy.design.api.NavigationRoot
-import com.ivy.design.navigation.Navigation
-import com.ivy.design.navigation.Screen
+import com.ivy.frp.view.navigation.Navigation
+import com.ivy.frp.view.navigation.NavigationRoot
+import com.ivy.frp.view.navigation.Screen
 import com.ivy.wallet.BuildConfig
 import com.ivy.wallet.Constants
+import com.ivy.wallet.Constants.SUPPORT_EMAIL
+import com.ivy.wallet.R
 import com.ivy.wallet.domain.data.TransactionType
-import com.ivy.wallet.domain.logic.CustomerJourneyLogic
+import com.ivy.wallet.domain.deprecated.logic.CustomerJourneyLogic
 import com.ivy.wallet.ui.analytics.AnalyticsReport
 import com.ivy.wallet.ui.applocked.AppLockedScreen
 import com.ivy.wallet.ui.balance.BalanceScreen
-import com.ivy.wallet.ui.bankintegrations.ConnectBankScreen
 import com.ivy.wallet.ui.budget.BudgetScreen
 import com.ivy.wallet.ui.category.CategoriesScreen
 import com.ivy.wallet.ui.charts.ChartsScreen
 import com.ivy.wallet.ui.csvimport.ImportCSVScreen
 import com.ivy.wallet.ui.edit.EditTransactionScreen
+import com.ivy.wallet.ui.experiment.images.ImagesScreen
 import com.ivy.wallet.ui.loan.LoansScreen
 import com.ivy.wallet.ui.loandetails.LoanDetailsScreen
 import com.ivy.wallet.ui.main.MainScreen
@@ -84,7 +85,6 @@ import javax.inject.Inject
 class RootActivity : AppCompatActivity() {
 
     companion object {
-        const val SUPPORT_EMAIL = "iliyan.germanov971@gmail.com"
 
         fun getIntent(context: Context): Intent = Intent(context, RootActivity::class.java)
 
@@ -203,13 +203,13 @@ class RootActivity : AppCompatActivity() {
             is Charts -> ChartsScreen(screen = screen)
             is AnalyticsReport -> AnalyticsReport(screen = screen)
             is Import -> ImportCSVScreen(screen = screen)
-            is ConnectBank -> ConnectBankScreen(screen = screen)
             is Report -> ReportScreen(screen = screen)
             is BudgetScreen -> BudgetScreen(screen = screen)
             is Loans -> LoansScreen(screen = screen)
             is LoanDetails -> LoanDetailsScreen(screen = screen)
             is Search -> SearchScreen(screen = screen)
             is IvyWebView -> WebViewScreen(screen = screen)
+            is ImagesScreen -> ImagesScreen(screen = screen)
             null -> {
             }
         }
@@ -390,10 +390,10 @@ class RootActivity : AppCompatActivity() {
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle(
-                "Authentication required"
+                getString(R.string.authentication_required)
             )
             .setSubtitle(
-                "Prove that you have access to this device to unlock the app."
+                getString(R.string.authentication_required_description)
             )
             .setAllowedAuthenticators(
                 BiometricManager.Authenticators.BIOMETRIC_WEAK or
@@ -532,9 +532,4 @@ class RootActivity : AppCompatActivity() {
         val addTransactionWidget = ComponentName(this, widget)
         appWidgetManager.requestPinAppWidget(addTransactionWidget, null, null)
     }
-}
-
-@Composable
-fun rootActivity(): RootActivity {
-    return LocalContext.current as RootActivity
 }

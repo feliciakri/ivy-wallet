@@ -1,9 +1,9 @@
 package com.ivy.wallet.ui.reports
 
 import com.ivy.wallet.domain.data.TransactionHistoryItem
-import com.ivy.wallet.domain.data.entity.Account
-import com.ivy.wallet.domain.data.entity.Category
-import com.ivy.wallet.domain.data.entity.Transaction
+import com.ivy.wallet.domain.data.core.Account
+import com.ivy.wallet.domain.data.core.Category
+import com.ivy.wallet.domain.data.core.Transaction
 import java.util.*
 
 data class ReportScreenState(
@@ -26,5 +26,7 @@ data class ReportScreenState(
     val loading: Boolean = false,
     val accountIdFilters: List<UUID> = emptyList(),
     val transactions: List<Transaction> = emptyList(),
-    val filterOverlayVisible: Boolean = false
+    val filterOverlayVisible: Boolean = false,
+    val showTransfersAsIncExpCheckbox: Boolean = false,
+    val treatTransfersAsIncExp: Boolean = false
 )

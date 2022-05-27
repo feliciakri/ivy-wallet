@@ -22,6 +22,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -40,7 +41,7 @@ import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientIvy
 import com.ivy.wallet.ui.theme.Ivy
 import com.ivy.wallet.ui.theme.White
-import com.ivy.wallet.ui.theme.modal.DURATION_MODAL_KEYBOARD
+import com.ivy.wallet.ui.theme.modal.DURATION_MODAL_ANIM
 import com.ivy.wallet.utils.*
 import java.util.*
 
@@ -71,7 +72,7 @@ fun CurrencyPicker(
         targetValue = densityScope {
             if (keyboardShown) keyboardOnlyWindowInsets().bottom.toDp() else 0.dp
         },
-        animationSpec = tween(DURATION_MODAL_KEYBOARD)
+        animationSpec = tween(DURATION_MODAL_ANIM)
     )
 
     Column(
@@ -148,7 +149,7 @@ private fun SearchInput(
             if (searchTextFieldValue.text.isEmpty()) {
                 //Hint
                 Text(
-                    text = "Search (USD, EUR, GBP, BTC, etc)",
+                    text = stringResource(R.string.search_currency),
                     style = UI.typo.c.style(
                         fontWeight = FontWeight.Bold
                     )
@@ -234,7 +235,7 @@ private fun SelectedCurrencyCard(
         )
 
         Text(
-            text = if (preselected) "Pre-selected" else "Selected",
+            text = if (preselected) stringResource(R.string.pre_selected) else stringResource(R.string.selected),
             style = UI.typo.b2.style(
                 color = White,
                 fontWeight = FontWeight.SemiBold
@@ -265,7 +266,7 @@ private fun CurrencyList(
 
     var lastFirstLetter: String? = null
     for (currency in currencies) {
-        val firstLetter = if (currency.isCrypto) "Crypto" else currency.code.first().toString()
+        val firstLetter = if (currency.isCrypto) stringResource(R.string.crypto) else currency.code.first().toString()
         if (firstLetter != lastFirstLetter) {
             currenciesWithLetters.add(
                 LetterDivider(

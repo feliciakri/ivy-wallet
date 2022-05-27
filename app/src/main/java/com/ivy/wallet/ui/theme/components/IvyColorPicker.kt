@@ -15,18 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ivy.design.api.navigation
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.frp.test.TestingContext
+import com.ivy.frp.view.navigation.navigation
 import com.ivy.wallet.R
 import com.ivy.wallet.ui.IvyWalletComponentPreview
 import com.ivy.wallet.ui.ivyWalletCtx
 import com.ivy.wallet.ui.paywall.PaywallReason
 import com.ivy.wallet.ui.theme.*
-import com.ivy.wallet.utils.TestingContext
 import com.ivy.wallet.utils.densityScope
 import com.ivy.wallet.utils.onScreenStart
 import com.ivy.wallet.utils.thenIf
@@ -63,7 +64,7 @@ fun ColumnScope.IvyColorPicker(
 ) {
     Text(
         modifier = Modifier.padding(horizontal = 32.dp),
-        text = "Choose color",
+        text = stringResource(R.string.choose_color),
         style = UI.typo.b2.style(
             color = UI.colors.pureInverse,
             fontWeight = FontWeight.ExtraBold

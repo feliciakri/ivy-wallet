@@ -4,18 +4,30 @@ import android.content.Context
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.ivy.design.navigation.Navigation
-import com.ivy.design.viewmodel.IvyViewModel
+import com.ivy.frp.filterSuspend
+import com.ivy.frp.view.navigation.Navigation
+import com.ivy.frp.viewmodel.FRPViewModel
+import com.ivy.frp.viewmodel.readOnly
+import com.ivy.wallet.R
+import com.ivy.wallet.domain.action.account.AccountsAct
+import com.ivy.wallet.domain.action.category.CategoriesAct
+import com.ivy.wallet.domain.action.exchange.ExchangeAct
+import com.ivy.wallet.domain.action.settings.BaseCurrencyAct
+import com.ivy.wallet.domain.action.transaction.CalcTrnsIncomeExpenseAct
+import com.ivy.wallet.domain.action.transaction.TrnsWithDateDivsAct
 import com.ivy.wallet.domain.data.TransactionType
-import com.ivy.wallet.domain.data.entity.Account
-import com.ivy.wallet.domain.data.entity.Category
-import com.ivy.wallet.domain.data.entity.Transaction
-import com.ivy.wallet.domain.fp.wallet.withDateDividers
-import com.ivy.wallet.domain.logic.PlannedPaymentsLogic
-import com.ivy.wallet.domain.logic.WalletLogic
-import com.ivy.wallet.domain.logic.csv.ExportCSVLogic
-import com.ivy.wallet.domain.logic.currency.ExchangeRatesLogic
-import com.ivy.wallet.io.persistence.dao.*
+import com.ivy.wallet.domain.data.core.Account
+import com.ivy.wallet.domain.data.core.Category
+import com.ivy.wallet.domain.data.core.Transaction
+import com.ivy.wallet.domain.deprecated.logic.PlannedPaymentsLogic
+import com.ivy.wallet.domain.deprecated.logic.csv.ExportCSVLogic
+import com.ivy.wallet.domain.pure.data.IncomeExpenseTransferPair
+import com.ivy.wallet.domain.pure.exchange.ExchangeData
+import com.ivy.wallet.domain.pure.transaction.trnCurrency
+import com.ivy.wallet.domain.pure.util.orZero
+import com.ivy.wallet.io.persistence.dao.SettingsDao
+import com.ivy.wallet.io.persistence.dao.TransactionDao
+import com.ivy.wallet.stringRes
 import com.ivy.wallet.ui.IvyWalletCtx
 import com.ivy.wallet.ui.RootActivity
 import com.ivy.wallet.ui.onboarding.model.TimePeriod
@@ -27,26 +39,34 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import javax.inject.Inject
 
 @HiltViewModel
 class ReportViewModel @Inject constructor(
     private val plannedPaymentsLogic: PlannedPaymentsLogic,
     private val settingsDao: SettingsDao,
-    private val walletLogic: WalletLogic,
     private val transactionDao: TransactionDao,
     private val ivyContext: IvyWalletCtx,
     private val nav: Navigation,
-    private val accountDao: AccountDao,
-    private val categoryDao: CategoryDao,
-    private val exchangeRatesLogic: ExchangeRatesLogic,
-    private val exchangeRateDao: ExchangeRateDao,
-    private val exportCSVLogic: ExportCSVLogic
-) : IvyViewModel<ReportScreenState>() {
-    override val mutableState: MutableStateFlow<ReportScreenState> = MutableStateFlow(
+    private val exportCSVLogic: ExportCSVLogic,
+    private val exchangeAct: ExchangeAct,
+    private val accountsAct: AccountsAct,
+    private val categoriesAct: CategoriesAct,
+    private val trnsWithDateDivsAct: TrnsWithDateDivsAct,
+    private val calcTrnsIncomeExpenseAct: CalcTrnsIncomeExpenseAct,
+    private val baseCurrencyAct: BaseCurrencyAct
+) : FRPViewModel<ReportScreenState, Nothing>() {
+    override val _state: MutableStateFlow<ReportScreenState> = MutableStateFlow(
         ReportScreenState()
     )
-    private val unSpecifiedCategory = Category("UnSpecified", color = Gray.toArgb())
+
+    override suspend fun handleEvent(event: Nothing): suspend () -> ReportScreenState {
+        TODO("Not yet implemented")
+    }
+
+    private val unSpecifiedCategory =
+        Category(stringRes(R.string.unspecified), color = Gray.toArgb())
 
     private val _period = MutableLiveData<TimePeriod>()
     val period = _period.asLiveData()
@@ -54,26 +74,28 @@ class ReportViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.readOnly()
 
-    private val _accounts = MutableStateFlow<List<Account>>(emptyList())
-    val accounts = _accounts.readOnly()
+    private val _allAccounts = MutableStateFlow<List<Account>>(emptyList())
 
     private val _baseCurrency = MutableStateFlow("")
     val baseCurrency = _baseCurrency.readOnly()
+
+    private val _historyIncomeExpense = MutableStateFlow(IncomeExpenseTransferPair.zero())
+    private val historyIncomeExpense = _historyIncomeExpense.readOnly()
 
     private val _filter = MutableStateFlow<ReportFilter?>(null)
     val filter = _filter.readOnly()
 
     fun start() {
         viewModelScope.launch(Dispatchers.IO) {
-            _baseCurrency.value = settingsDao.findFirst().currency
-            _accounts.value = accountDao.findAll()
-            _categories.value = listOf(unSpecifiedCategory) + categoryDao.findAll()
+            _baseCurrency.value = baseCurrencyAct(Unit)
+            _allAccounts.value = accountsAct(Unit)
+            _categories.value = listOf(unSpecifiedCategory) + categoriesAct(Unit)
 
             updateState {
                 it.copy(
                     baseCurrency = _baseCurrency.value,
                     categories = _categories.value,
-                    accounts = _accounts.value
+                    accounts = _allAccounts.value
                 )
             }
         }
@@ -88,7 +110,7 @@ class ReportViewModel @Inject constructor(
             }
 
             if (!filter.validate()) return@scopedIOThread
-            val accounts = accounts.value
+            val accounts = filter.accounts
             val baseCurrency = baseCurrency.value
             _filter.value = filter
 
@@ -107,26 +129,29 @@ class ReportViewModel @Inject constructor(
                 .sortedByDescending { it.dateTime }
 
             val historyWithDateDividers = scope.async {
-                history.withDateDividers(
-                    exchangeRateDao = exchangeRateDao,
-                    accountDao = accountDao,
-                    baseCurrencyCode = _baseCurrency.value
+                trnsWithDateDivsAct(
+                    TrnsWithDateDivsAct.Input(
+                        baseCurrency = stateVal().baseCurrency,
+                        transactions = history
+                    )
                 )
             }
 
-            val income = scope.async { walletLogic.calculateIncome(history) }
-            val expenses = scope.async { walletLogic.calculateExpenses(history) }
-
-            val balance = scope.async {
-                calculateBalance(
-                    baseCurrency = baseCurrency,
+            _historyIncomeExpense.value = calcTrnsIncomeExpenseAct(
+                CalcTrnsIncomeExpenseAct.Input(
+                    transactions = history,
                     accounts = accounts,
-                    history = history,
-                    income = income.await(),
-                    expenses = expenses.await(),
-                    filter = filter
+                    baseCurrency = baseCurrency
                 )
-            }
+            )
+
+            val income = historyIncomeExpense.value.income.toDouble() +
+                    if (stateVal().treatTransfersAsIncExp) historyIncomeExpense.value.transferIncome.toDouble() else 0.0
+
+            val expenses = historyIncomeExpense.value.expense.toDouble() +
+                    if (stateVal().treatTransfersAsIncExp) historyIncomeExpense.value.transferExpense.toDouble() else 0.0
+
+            val balance = calculateBalance(historyIncomeExpense.value).toDouble()
 
             val accountFilterIdList = scope.async { filter.accounts.map { it.id } }
 
@@ -138,44 +163,54 @@ class ReportViewModel @Inject constructor(
                     it.dueDate != null && it.dueDate.isAfter(timeNowUTC)
                 }
                 .sortedBy { it.dueDate }
-            val upcomingIncome = scope.async { walletLogic.calculateIncome(upcomingTransactions) }
-            val upcomingExpenses =
-                scope.async { walletLogic.calculateExpenses(upcomingTransactions) }
 
+            val upcomingIncomeExpense = calcTrnsIncomeExpenseAct(
+                CalcTrnsIncomeExpenseAct.Input(
+                    transactions = upcomingTransactions,
+                    accounts = accounts,
+                    baseCurrency = baseCurrency
+                )
+            )
             //Overdue
             val overdue = transactions.filter {
                 it.dueDate != null && it.dueDate.isBefore(timeNowUTC)
             }.sortedByDescending {
                 it.dueDate
             }
-            val overdueIncome = scope.async { walletLogic.calculateIncome(overdue) }
-            val overdueExpenses = scope.async { walletLogic.calculateExpenses(overdue) }
+            val overdueIncomeExpense = calcTrnsIncomeExpenseAct(
+                CalcTrnsIncomeExpenseAct.Input(
+                    transactions = overdue,
+                    accounts = accounts,
+                    baseCurrency = baseCurrency
+                )
+            )
 
             updateState {
                 it.copy(
-                    income = income.await(),
-                    expenses = expenses.await(),
-                    upcomingIncome = upcomingIncome.await(),
-                    upcomingExpenses = upcomingExpenses.await(),
-                    overdueIncome = overdueIncome.await(),
-                    overdueExpenses = overdueExpenses.await(),
+                    income = income,
+                    expenses = expenses,
+                    upcomingIncome = upcomingIncomeExpense.income.toDouble(),
+                    upcomingExpenses = upcomingIncomeExpense.expense.toDouble(),
+                    overdueIncome = overdueIncomeExpense.income.toDouble(),
+                    overdueExpenses = overdueIncomeExpense.expense.toDouble(),
                     history = historyWithDateDividers.await(),
                     upcomingTransactions = upcomingTransactions,
                     overdueTransactions = overdue,
                     categories = categories.value,
-                    accounts = _accounts.value,
+                    accounts = _allAccounts.value,
                     filter = filter,
                     loading = false,
                     accountIdFilters = accountFilterIdList.await(),
                     transactions = transactions,
-                    balance = balance.await(),
-                    filterOverlayVisible = false
+                    balance = balance,
+                    filterOverlayVisible = false,
+                    showTransfersAsIncExpCheckbox = filter.trnTypes.contains(TransactionType.TRANSFER)
                 )
             }
         }
     }
 
-    private fun filterTransactions(
+    private suspend fun filterTransactions(
         baseCurrency: String,
         accounts: List<Account>,
         filter: ReportFilter,
@@ -187,7 +222,7 @@ class ReportViewModel @Inject constructor(
 
         return transactionDao
             .findAll()
-            .asSequence()
+            .map { it.toDomain() }
             .filter {
                 //Filter by Transaction Type
                 filter.trnTypes.contains(it.type)
@@ -209,17 +244,21 @@ class ReportViewModel @Inject constructor(
             .filter { trn ->
                 //Filter by Categories
 
-                filterCategoryIds.contains(trn.smartCategoryId()) || (trn.type == TransactionType.TRANSFER)
+                filterCategoryIds.contains(trn.categoryId) || (trn.type == TransactionType.TRANSFER)
             }
-            .filter {
+            .filterSuspend {
                 //Filter by Amount
                 //!NOTE: Amount must be converted to baseCurrency amount
 
-                val trnAmountBaseCurrency = exchangeRatesLogic.amountBaseCurrency(
-                    transaction = it,
-                    baseCurrency = baseCurrency,
-                    accounts = accounts
-                )
+                val trnAmountBaseCurrency = exchangeAct(
+                    ExchangeAct.Input(
+                        data = ExchangeData(
+                            baseCurrency = baseCurrency,
+                            fromCurrency = trnCurrency(it, accounts, baseCurrency),
+                        ),
+                        amount = it.amount
+                    )
+                ).orZero().toDouble()
 
                 (filter.minAmount == null || trnAmountBaseCurrency >= filter.minAmount) &&
                         (filter.maxAmount == null || trnAmountBaseCurrency <= filter.maxAmount)
@@ -279,55 +318,18 @@ class ReportViewModel @Inject constructor(
         return this.toLowerCaseLocal().contains(anotherString.toLowerCaseLocal())
     }
 
-    private fun calculateBalance(
-        baseCurrency: String,
-        accounts: List<Account>,
-        history: List<Transaction>,
-        income: Double,
-        expenses: Double,
-        filter: ReportFilter
-    ): Double {
-        val includedAccountsIds = filter.accounts.map { it.id }
-        //+ Transfers In (#conv to BaseCurrency)
-        val transfersIn = history
-            .filter {
-                it.type == TransactionType.TRANSFER &&
-                        it.toAccountId != null && includedAccountsIds.contains(it.toAccountId)
-            }
-            .sumOf { trn ->
-                exchangeRatesLogic.toAmountBaseCurrency(
-                    transaction = trn,
-                    baseCurrency = baseCurrency,
-                    accounts = accounts
-                )
-            }
-
-        //- Transfers Out (#conv to BaseCurrency)
-        val transfersOut = history
-            .filter {
-                it.type == TransactionType.TRANSFER &&
-                        includedAccountsIds.contains(it.accountId)
-            }
-            .sumOf { trn ->
-                exchangeRatesLogic.amountBaseCurrency(
-                    transaction = trn,
-                    baseCurrency = baseCurrency,
-                    accounts = accounts
-                )
-            }
-
-        //Income - Expenses (#conv to BaseCurrency)
-        return income - expenses + transfersIn - transfersOut
+    private fun calculateBalance(incomeExpenseTransferPair: IncomeExpenseTransferPair) : BigDecimal{
+        return incomeExpenseTransferPair.income + incomeExpenseTransferPair.transferIncome - incomeExpenseTransferPair.expense - incomeExpenseTransferPair.transferExpense
     }
 
-    private fun export(context: Context) {
+    private suspend fun export(context: Context) {
         ivyContext.protectWithPaywall(
             paywallReason = PaywallReason.EXPORT_CSV,
             navigation = nav
         ) {
             val filter = _filter.value ?: return@protectWithPaywall
             if (!filter.validate()) return@protectWithPaywall
-            val accounts = _accounts.value
+            val accounts = _allAccounts.value
             val baseCurrency = _baseCurrency.value
 
             ivyContext.createNewFile(
@@ -390,6 +392,20 @@ class ReportViewModel @Inject constructor(
         }
     }
 
+    private suspend fun onTreatTransfersAsIncomeExpense(treatTransfersAsIncExp: Boolean) {
+        updateState {
+            val income = historyIncomeExpense.value.income.toDouble() +
+                    if (treatTransfersAsIncExp) historyIncomeExpense.value.transferIncome.toDouble() else 0.0
+            val expenses = historyIncomeExpense.value.expense.toDouble() +
+                    if (treatTransfersAsIncExp) historyIncomeExpense.value.transferExpense.toDouble() else 0.0
+            it.copy(
+                treatTransfersAsIncExp = treatTransfersAsIncExp,
+                income = income,
+                expenses = expenses
+            )
+        }
+    }
+
     fun onEvent(event: ReportScreenEvent) {
         viewModelScope.launch(Dispatchers.Default) {
             when (event) {
@@ -399,6 +415,9 @@ class ReportViewModel @Inject constructor(
                 is ReportScreenEvent.OnOverdueExpanded -> setOverdueExpanded(event.overdueExpanded)
                 is ReportScreenEvent.OnUpcomingExpanded -> setUpcomingExpanded(event.upcomingExpanded)
                 is ReportScreenEvent.OnFilterOverlayVisible -> setFilterOverlayVisible(event.filterOverlayVisible)
+                is ReportScreenEvent.OnTreatTransfersAsIncomeExpense -> onTreatTransfersAsIncomeExpense(
+                    event.transfersAsIncomeExpense
+                )
             }
         }
     }

@@ -19,7 +19,7 @@ class OperationsCoreTest : IvyComposeTest() {
     private val transactionFlow = TransactionFlow(composeTestRule)
     private val homeTab = HomeTab(composeTestRule)
     private val accountsTab = AccountsTab(composeTestRule)
-    private val editTransactionScreen = EditTransactionScreen(composeTestRule)
+    private val editTransactionScreen = TransactionScreen(composeTestRule)
     private val itemStatisticScreen = ItemStatisticScreen(composeTestRule)
     private val deleteConfirmationModal = DeleteConfirmationModal(composeTestRule)
 
@@ -223,5 +223,67 @@ class OperationsCoreTest : IvyComposeTest() {
             amount = "0",
             amountDecimal = ".00"
         )
+    }
+
+    @Test
+    fun AddTransaction_withDescription() = testWithRetry {
+        onboarding.quickOnboarding()
+
+        transactionFlow.addExpense(
+            amount = 2178.0,
+            title = "Samsung Galaxy Tab S8+",
+            category = "Groceries",
+            description = "Tablet for learning purposes."
+        )
+
+        homeTab.assertBalance(
+            "-2,178",
+            amountDecimal = ".00"
+        )
+
+        homeTab.dismissPrompt()
+
+        homeTab.clickTransaction(
+            amount = "2,178.00",
+            title = "Samsung Galaxy Tab S8+",
+            category = "Groceries"
+        )
+
+        editTransactionScreen.assertDescription("Tablet for learning purposes.")
+    }
+
+    @Test
+    fun AddTransaction_thenRemoveDescription() = testWithRetry {
+        onboarding.quickOnboarding()
+
+        transactionFlow.addIncome(
+            amount = 123.0,
+            title = "Income",
+            description = "-a\n-b\n-c\n-d"
+        )
+
+        homeTab.assertBalance(
+            "123",
+            amountDecimal = ".00"
+        )
+
+        homeTab.dismissPrompt()
+
+        homeTab.clickTransaction(
+            amount = "123.00",
+            title = "Income",
+        )
+
+        editTransactionScreen.assertDescription("-a\n-b\n-c\n-d")
+
+        // No remove desc ---------------------------------------------------------------
+        editTransactionScreen.removeDescription()
+        editTransactionScreen.save()
+
+        homeTab.clickTransaction(
+            amount = "123.00",
+            title = "Income",
+        )
+        editTransactionScreen.assertAddDescriptionButtonVisible()
     }
 }

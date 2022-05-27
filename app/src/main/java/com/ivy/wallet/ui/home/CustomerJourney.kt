@@ -13,12 +13,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ivy.design.api.navigation
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.frp.view.navigation.navigation
 import com.ivy.wallet.R
-import com.ivy.wallet.domain.logic.CustomerJourneyLogic
-import com.ivy.wallet.domain.logic.model.CustomerJourneyCardData
+import com.ivy.wallet.domain.deprecated.logic.CustomerJourneyLogic
+import com.ivy.wallet.domain.deprecated.logic.model.CustomerJourneyCardData
 import com.ivy.wallet.ui.IvyWalletComponentPreview
 import com.ivy.wallet.ui.RootActivity
 import com.ivy.wallet.ui.ivyWalletCtx
