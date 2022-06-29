@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ivy.frp.monad.Res
 import com.ivy.frp.test.TestIdlingResource
+import com.ivy.frp.view.navigation.Navigation
 import com.ivy.wallet.domain.action.global.StartDayOfMonthAct
 import com.ivy.wallet.domain.action.global.UpdateStartDayOfMonthAct
+import com.ivy.wallet.domain.action.transaction.FetchAllTrnsFromServerAct
 import com.ivy.wallet.domain.data.analytics.AnalyticsEvent
 import com.ivy.wallet.domain.data.core.User
 import com.ivy.wallet.domain.deprecated.logic.LogoutLogic
@@ -24,8 +26,11 @@ import com.ivy.wallet.io.network.request.github.OpenIssueRequest
 import com.ivy.wallet.io.persistence.SharedPrefs
 import com.ivy.wallet.io.persistence.dao.SettingsDao
 import com.ivy.wallet.io.persistence.dao.UserDao
+import com.ivy.wallet.refreshWidget
 import com.ivy.wallet.ui.IvyWalletCtx
+import com.ivy.wallet.ui.Main
 import com.ivy.wallet.ui.RootActivity
+import com.ivy.wallet.ui.widget.WalletBalanceReceiver
 import com.ivy.wallet.utils.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +56,9 @@ class SettingsViewModel @Inject constructor(
     private val sharedPrefs: SharedPrefs,
     private val exportZipLogic: ExportZipLogic,
     private val startDayOfMonthAct: StartDayOfMonthAct,
-    private val updateStartDayOfMonthAct: UpdateStartDayOfMonthAct
+    private val updateStartDayOfMonthAct: UpdateStartDayOfMonthAct,
+    private val fetchAllTrnsFromServerAct: FetchAllTrnsFromServerAct,
+    private val nav: Navigation
 ) : ViewModel() {
 
     private val _user = MutableLiveData<User?>()
@@ -83,6 +90,9 @@ class SettingsViewModel @Inject constructor(
 
     private val _startDateOfMonth = MutableLiveData<Int>()
     val startDateOfMonth = _startDateOfMonth
+
+    private val _opFetchtrns = MutableStateFlow<OpResult<Unit>?>(null)
+    val opFetchTrns = _opFetchtrns.asStateFlow()
 
     fun start() {
         viewModelScope.launch {
@@ -241,6 +251,16 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun cloudLogout() {
+        viewModelScope.launch {
+            TestIdlingResource.increment()
+
+            logoutLogic.cloudLogout()
+
+            TestIdlingResource.decrement()
+        }
+    }
+
     fun login() {
         ivyContext.googleSignIn { idToken ->
             if (idToken != null) {
@@ -293,6 +313,7 @@ class SettingsViewModel @Inject constructor(
 
             sharedPrefs.putBoolean(SharedPrefs.APP_LOCK_ENABLED, lockApp)
             _lockApp.value = lockApp
+            refreshWidget(WalletBalanceReceiver::class.java)
 
             TestIdlingResource.decrement()
         }
@@ -373,6 +394,40 @@ class SettingsViewModel @Inject constructor(
                 e.printStackTrace()
             }
             logout()
+        }
+    }
+
+    fun deleteCloudUserData() {
+        viewModelScope.launch {
+            try {
+                restClient.nukeService.deleteAllUserData()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            cloudLogout()
+        }
+    }
+
+    fun fetchMissingTransactions() {
+        if (opFetchTrns.value is OpResult.Loading) {
+            //wait for sync to finish
+            return
+        }
+
+        if (opFetchTrns.value is OpResult.Success) {
+            //go to home screen
+            ivyContext.setMoreMenuExpanded(expanded = false)
+            nav.navigateTo(Main)
+            return
+        }
+
+        viewModelScope.launch {
+            _opFetchtrns.value = OpResult.loading()
+
+            when (val res = fetchAllTrnsFromServerAct(Unit)) {
+                is Res.Ok -> _opFetchtrns.value = OpResult.success(Unit)
+                is Res.Err -> _opFetchtrns.value = OpResult.failure(res.error)
+            }
         }
     }
 }
