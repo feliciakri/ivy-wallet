@@ -5,19 +5,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ivy.base.CustomExchangeRateState
 import com.ivy.base.EditTransactionDisplayLoan
-import com.ivy.base.refreshWidget
-import com.ivy.data.Account
-import com.ivy.data.Category
-import com.ivy.data.transaction.Transaction
-import com.ivy.data.transaction.TransactionType
+import com.ivy.data.AccountOld
+import com.ivy.data.CategoryOld
+import com.ivy.data.transaction.TransactionOld
+import com.ivy.data.transaction.TrnType
 import com.ivy.frp.test.TestIdlingResource
 import com.ivy.frp.view.navigation.Navigation
 import com.ivy.screens.EditTransaction
 import com.ivy.screens.Main
 import com.ivy.temp.event.AccountsUpdatedEvent
 import com.ivy.wallet.domain.action.account.AccountByIdAct
-import com.ivy.wallet.domain.action.account.AccountsAct
-import com.ivy.wallet.domain.action.category.CategoriesAct
+import com.ivy.wallet.domain.action.account.AccountsActOld
+import com.ivy.wallet.domain.action.category.CategoriesActOld
 import com.ivy.wallet.domain.action.category.CategoryByIdAct
 import com.ivy.wallet.domain.action.transaction.TrnByIdAct
 import com.ivy.wallet.domain.deprecated.logic.AccountCreator
@@ -51,7 +50,7 @@ class EditTransactionViewModel @Inject constructor(
     private val accountDao: AccountDao,
     private val categoryDao: CategoryDao,
     private val settingsDao: SettingsDao,
-    private val ivyContext: com.ivy.base.IvyWalletCtx,
+    private val ivyContext: com.ivy.core.ui.temp.IvyWalletCtx,
     private val nav: Navigation,
     private val transactionUploader: TransactionUploader,
     private val sharedPrefs: SharedPrefs,
@@ -61,14 +60,14 @@ class EditTransactionViewModel @Inject constructor(
     private val plannedPaymentsLogic: PlannedPaymentsLogic,
     private val smartTitleSuggestionsLogic: SmartTitleSuggestionsLogic,
     private val loanTransactionsLogic: LoanTransactionsLogic,
-    private val accountsAct: AccountsAct,
-    private val categoriesAct: CategoriesAct,
+    private val accountsAct: AccountsActOld,
+    private val categoriesAct: CategoriesActOld,
     private val trnByIdAct: TrnByIdAct,
     private val categoryByIdAct: CategoryByIdAct,
     private val accountByIdAct: AccountByIdAct
 ) : ViewModel() {
 
-    private val _transactionType = MutableLiveData<TransactionType>()
+    private val _transactionType = MutableLiveData<TrnType>()
     val transactionType = _transactionType
 
     private val _initialTitle = MutableStateFlow<String?>(null)
@@ -89,19 +88,19 @@ class EditTransactionViewModel @Inject constructor(
     private val _dueDate = MutableStateFlow<LocalDateTime?>(null)
     val dueDate = _dueDate.readOnly()
 
-    private val _accounts = MutableStateFlow<List<Account>>(emptyList())
+    private val _accounts = MutableStateFlow<List<AccountOld>>(emptyList())
     val accounts = _accounts.readOnly()
 
-    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    private val _categories = MutableStateFlow<List<CategoryOld>>(emptyList())
     val categories = _categories.readOnly()
 
-    private val _account = MutableStateFlow<Account?>(null)
+    private val _account = MutableStateFlow<AccountOld?>(null)
     val account = _account.readOnly()
 
-    private val _toAccount = MutableStateFlow<Account?>(null)
+    private val _toAccount = MutableStateFlow<AccountOld?>(null)
     val toAccount = _toAccount.readOnly()
 
-    private val _category = MutableStateFlow<Category?>(null)
+    private val _category = MutableStateFlow<CategoryOld?>(null)
     val category = _category.readOnly()
 
     private val _amount = MutableStateFlow(0.0)
@@ -122,7 +121,7 @@ class EditTransactionViewModel @Inject constructor(
     private val _customExchangeRateState = MutableStateFlow(CustomExchangeRateState())
     val customExchangeRateState = _customExchangeRateState.asStateFlow()
 
-    private var loadedTransaction: Transaction? = null
+    private var loadedTransaction: TransactionOld? = null
     private var editMode = false
 
     //Used for optimising in updating all loan/loanRecords
@@ -152,7 +151,7 @@ class EditTransactionViewModel @Inject constructor(
 
             loadedTransaction = screen.initialTransactionId?.let {
                 trnByIdAct(it)
-            } ?: Transaction(
+            } ?: TransactionOld(
                 accountId = defaultAccountId(
                     screen = screen,
                     accounts = accounts
@@ -169,7 +168,7 @@ class EditTransactionViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getDisplayLoanHelper(trans: Transaction): EditTransactionDisplayLoan {
+    private suspend fun getDisplayLoanHelper(trans: TransactionOld): EditTransactionDisplayLoan {
         if (trans.loanId == null)
             return EditTransactionDisplayLoan()
 
@@ -201,7 +200,7 @@ class EditTransactionViewModel @Inject constructor(
 
     private suspend fun defaultAccountId(
         screen: EditTransaction,
-        accounts: List<Account>,
+        accounts: List<AccountOld>,
     ): UUID {
         val accountId = screen.accountId
         if (accountId != null) {
@@ -218,7 +217,7 @@ class EditTransactionViewModel @Inject constructor(
         return accounts.first().id
     }
 
-    private suspend fun display(transaction: Transaction) {
+    private suspend fun display(transaction: TransactionOld) {
         this.title = transaction.title
 
         _transactionType.value = transaction.type
@@ -256,7 +255,7 @@ class EditTransactionViewModel @Inject constructor(
         _displayLoanHelper.value = getDisplayLoanHelper(trans = transaction)
     }
 
-    private suspend fun updateCurrency(account: Account) {
+    private suspend fun updateCurrency(account: AccountOld) {
         _currency.value = account.currency ?: baseCurrency()
     }
 
@@ -310,7 +309,7 @@ class EditTransactionViewModel @Inject constructor(
         saveIfEditMode()
     }
 
-    fun onCategoryChanged(newCategory: Category?) {
+    fun onCategoryChanged(newCategory: CategoryOld?) {
         loadedTransaction = loadedTransaction().copy(
             categoryId = newCategory?.id
         )
@@ -321,7 +320,7 @@ class EditTransactionViewModel @Inject constructor(
         updateTitleSuggestions()
     }
 
-    fun onAccountChanged(newAccount: Account) {
+    fun onAccountChanged(newAccount: AccountOld) {
         viewModelScope.launch {
             TestIdlingResource.increment()
 
@@ -349,7 +348,7 @@ class EditTransactionViewModel @Inject constructor(
         }
     }
 
-    fun onToAccountChanged(newAccount: Account) {
+    fun onToAccountChanged(newAccount: AccountOld) {
         viewModelScope.launch {
             loadedTransaction = loadedTransaction().copy(
                 toAccountId = newAccount.id
@@ -379,7 +378,7 @@ class EditTransactionViewModel @Inject constructor(
         saveIfEditMode()
     }
 
-    fun onSetTransactionType(newTransactionType: TransactionType) {
+    fun onSetTransactionType(newTransactionType: TrnType) {
         loadedTransaction = loadedTransaction().copy(
             type = newTransactionType
         )
@@ -445,7 +444,7 @@ class EditTransactionViewModel @Inject constructor(
         }
     }
 
-    fun editCategory(updatedCategory: Category) {
+    fun editCategory(updatedCategory: CategoryOld) {
         viewModelScope.launch {
             TestIdlingResource.increment()
 
@@ -535,7 +534,7 @@ class EditTransactionViewModel @Inject constructor(
                 }
 
                 transactionDao.save(loadedTransaction().toEntity())
-                refreshWidget(WalletBalanceReceiver::class.java)
+                com.ivy.core.ui.temp.refreshWidget(WalletBalanceReceiver::class.java)
             }
 
             if (closeScreen) {
@@ -557,7 +556,7 @@ class EditTransactionViewModel @Inject constructor(
     private suspend fun transferToAmount(
         amount: Double
     ): Double? {
-        if (transactionType.value != TransactionType.TRANSFER) return null
+        if (transactionType.value != TrnType.TRANSFER) return null
         val toCurrency = toAccount.value?.currency ?: baseCurrency()
         val fromCurrency = account.value?.currency ?: baseCurrency()
 
@@ -579,7 +578,7 @@ class EditTransactionViewModel @Inject constructor(
     }
 
     private fun validateTransaction(): Boolean {
-        if (transactionType.value == TransactionType.TRANSFER && toAccount.value == null) {
+        if (transactionType.value == TrnType.TRANSFER && toAccount.value == null) {
             return false
         }
 
@@ -603,8 +602,8 @@ class EditTransactionViewModel @Inject constructor(
     private fun loadedTransaction() = loadedTransaction ?: error("Loaded transaction is null")
 
     private suspend fun updateCustomExchangeRateState(
-        toAccount: Account? = null,
-        fromAccount: Account? = null,
+        toAccount: AccountOld? = null,
+        fromAccount: AccountOld? = null,
         amt: Double? = null,
         exchangeRate: Double? = null,
         resetRate: Boolean = false

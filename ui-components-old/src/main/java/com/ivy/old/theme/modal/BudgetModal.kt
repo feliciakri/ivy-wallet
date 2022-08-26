@@ -22,11 +22,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ivy.base.*
 import com.ivy.base.R
-import com.ivy.data.Account
+import com.ivy.core.ui.temp.trash.BudgetExt
+import com.ivy.core.ui.temp.trash.parseAccountIds
+import com.ivy.core.ui.temp.trash.parseCategoryIds
+import com.ivy.data.AccountOld
 import com.ivy.data.Budget
-import com.ivy.data.Category
+import com.ivy.data.CategoryOld
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.frp.view.navigation.onScreenStart
@@ -48,8 +50,8 @@ data class BudgetModalData(
     val budget: Budget?,
 
     val baseCurrency: String,
-    val categories: List<Category>,
-    val accounts: List<Account>,
+    val categories: List<CategoryOld>,
+    val accounts: List<AccountOld>,
 
     val id: UUID = UUID.randomUUID(),
     val autoFocusKeyboard: Boolean = true,
@@ -245,7 +247,7 @@ fun ModalNameInput(
 
 @Composable
 private fun CategoriesRow(
-    categories: List<Category>,
+    categories: List<CategoryOld>,
     budgetCategoryIds: List<UUID>,
 
     onSetBudgetCategoryIds: (List<UUID>) -> Unit,
@@ -296,8 +298,8 @@ private fun CategoriesRow(
 @Preview
 @Composable
 private fun Preview_create() {
-    IvyWalletPreview {
-        val cat1 = Category("Science", color = Purple1Dark.toArgb(), icon = "atom")
+    com.ivy.core.ui.temp.Preview {
+        val cat1 = CategoryOld("Science", color = Purple1Dark.toArgb(), icon = "atom")
 
         BudgetModal(
             modal = BudgetModalData(
@@ -305,8 +307,8 @@ private fun Preview_create() {
                 baseCurrency = "BGN",
                 categories = listOf(
                     cat1,
-                    Category("Pet", color = Red3Light.toArgb(), icon = "pet"),
-                    Category("Home", color = Green.toArgb(), icon = null),
+                    CategoryOld("Pet", color = Red3Light.toArgb(), icon = "pet"),
+                    CategoryOld("Home", color = Green.toArgb(), icon = null),
                 ),
                 accounts = emptyList()
             ),
@@ -322,8 +324,8 @@ private fun Preview_create() {
 @Preview
 @Composable
 private fun Preview_edit() {
-    IvyWalletPreview {
-        val cat1 = Category("Science", color = Purple1Dark.toArgb(), icon = "atom")
+    com.ivy.core.ui.temp.Preview {
+        val cat1 = CategoryOld("Science", color = Purple1Dark.toArgb(), icon = "atom")
 
         BudgetModal(
             modal = BudgetModalData(
@@ -337,8 +339,8 @@ private fun Preview_edit() {
                 baseCurrency = "BGN",
                 categories = listOf(
                     cat1,
-                    Category("Pet", color = Red3Light.toArgb(), icon = "pet"),
-                    Category("Home", color = Green.toArgb(), icon = null),
+                    CategoryOld("Pet", color = Red3Light.toArgb(), icon = "pet"),
+                    CategoryOld("Home", color = Green.toArgb(), icon = null),
                 ),
                 accounts = emptyList()
             ),

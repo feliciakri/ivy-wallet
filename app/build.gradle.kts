@@ -8,6 +8,7 @@ plugins {
     id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.android")
     id("dagger.hilt.android.plugin")
+    id("io.kotest")
 }
 
 android {
@@ -97,6 +98,10 @@ android {
     lint {
 //        isCheckReleaseBuilds = true
 //        isAbortOnError = false
+        checkDependencies = true
+        xmlReport = false
+        htmlReport = true
+        htmlOutput = File(projectDir, "lint-merged-report.html")
     }
 
     packagingOptions {
@@ -120,8 +125,10 @@ android {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":common"))
     implementation(project(":ui-common"))
     implementation(project(":app-base"))
+    implementation(project(":core:ui"))
     implementation(project(":screens"))
     implementation(project(":budgets"))
     implementation(project(":categories"))
@@ -151,7 +158,7 @@ dependencies {
     implementation(project(":temp-network"))
     implementation(project(":billing"))
     implementation(project(":android-notifications"))
-    implementation(project(":exchange"))
+    implementation(project(":core:exchange-provider"))
 
     Hilt()
 
@@ -161,6 +168,7 @@ dependencies {
     RoomDB(api = false)
 
     Networking(api = false)
+    Testing()
 
     DataStore(api = false)
 

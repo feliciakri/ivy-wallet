@@ -17,14 +17,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ivy.base.IvyWalletPreview
 import com.ivy.base.R
-import com.ivy.base.forDisplay
-import com.ivy.data.Account
-import com.ivy.data.Category
+import com.ivy.core.ui.temp.trash.forDisplay
+import com.ivy.data.AccountOld
+import com.ivy.data.CategoryOld
 import com.ivy.data.planned.IntervalType
 import com.ivy.data.planned.PlannedPaymentRule
-import com.ivy.data.transaction.TransactionType
+import com.ivy.data.transaction.TrnType
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.frp.view.navigation.navigation
@@ -40,8 +39,8 @@ import java.time.LocalDateTime
 @Composable
 fun LazyItemScope.PlannedPaymentCard(
     baseCurrency: String,
-    categories: List<Category>,
-    accounts: List<Account>,
+    categories: List<CategoryOld>,
+    accounts: List<AccountOld>,
     plannedPayment: PlannedPaymentRule,
     onClick: (PlannedPaymentRule) -> Unit,
 ) {
@@ -108,12 +107,12 @@ fun LazyItemScope.PlannedPaymentCard(
 @Composable
 private fun PlannedPaymentHeaderRow(
     plannedPayment: PlannedPaymentRule,
-    categories: List<Category>,
-    accounts: List<Account>
+    categories: List<CategoryOld>,
+    accounts: List<AccountOld>
 ) {
     val nav = navigation()
 
-    if (plannedPayment.type != TransactionType.TRANSFER) {
+    if (plannedPayment.type != TrnType.TRANSFER) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -242,10 +241,10 @@ private fun RuleTextRow(
 @Preview
 @Composable
 private fun Preview_oneTime() {
-    IvyWalletPreview {
+    com.ivy.core.ui.temp.Preview {
         LazyColumn(Modifier.fillMaxSize()) {
-            val cash = Account(name = "Cash", color = Green.toArgb())
-            val food = Category(name = "Food", color = Green.toArgb())
+            val cash = AccountOld(name = "Cash", color = Green.toArgb())
+            val food = CategoryOld(name = "Food", color = Green.toArgb())
 
             item {
                 Spacer(Modifier.height(68.dp))
@@ -263,7 +262,7 @@ private fun Preview_oneTime() {
                         oneTime = true,
                         intervalType = null,
                         intervalN = null,
-                        type = TransactionType.EXPENSE
+                        type = TrnType.EXPENSE
                     )
                 ) {
 
@@ -276,10 +275,10 @@ private fun Preview_oneTime() {
 @Preview
 @Composable
 private fun Preview_recurring() {
-    IvyWalletPreview {
+    com.ivy.core.ui.temp.Preview {
         LazyColumn(Modifier.fillMaxSize()) {
-            val account = Account(name = "Revolut", color = Green.toArgb())
-            val shisha = Category(name = "Shisha", color = Orange.toArgb())
+            val account = AccountOld(name = "Revolut", color = Green.toArgb())
+            val shisha = CategoryOld(name = "Shisha", color = Orange.toArgb())
 
             item {
                 Spacer(Modifier.height(68.dp))
@@ -297,7 +296,7 @@ private fun Preview_recurring() {
                         oneTime = false,
                         intervalType = IntervalType.MONTH,
                         intervalN = 1,
-                        type = TransactionType.EXPENSE
+                        type = TrnType.EXPENSE
                     )
                 ) {
 
@@ -310,10 +309,10 @@ private fun Preview_recurring() {
 @Preview
 @Composable
 private fun Preview_recurringError() {
-    IvyWalletPreview {
+    com.ivy.core.ui.temp.Preview {
         LazyColumn(Modifier.fillMaxSize()) {
-            val account = Account(name = "Revolut", color = Green.toArgb())
-            val shisha = Category(name = "Shisha", color = Orange.toArgb())
+            val account = AccountOld(name = "Revolut", color = Green.toArgb())
+            val shisha = CategoryOld(name = "Shisha", color = Orange.toArgb())
 
             item {
                 Spacer(Modifier.height(68.dp))
@@ -331,7 +330,7 @@ private fun Preview_recurringError() {
                         oneTime = false,
                         intervalType = null,
                         intervalN = null,
-                        type = TransactionType.EXPENSE
+                        type = TrnType.EXPENSE
                     )
                 ) {
 

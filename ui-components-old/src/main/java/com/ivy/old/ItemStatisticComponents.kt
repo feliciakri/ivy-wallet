@@ -12,10 +12,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ivy.base.R
-import com.ivy.base.stringRes
 import com.ivy.data.IvyCurrency
-import com.ivy.data.transaction.Transaction
-import com.ivy.data.transaction.TransactionType
+import com.ivy.data.transaction.TransactionOld
+import com.ivy.data.transaction.TrnType
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.wallet.ui.theme.*
@@ -35,7 +34,7 @@ fun IncomeExpensesCards(
 
     incomeHeaderCardClicked: () -> Unit = {},
     expenseHeaderCardClicked: () -> Unit = {},
-    onAddTransaction: (TransactionType) -> Unit = {},
+    onAddTransaction: (TrnType) -> Unit = {},
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -44,37 +43,37 @@ fun IncomeExpensesCards(
         Spacer(Modifier.width(16.dp))
 
         HeaderCard(
-            title = stringRes(R.string.income_uppercase),
+            title = com.ivy.core.ui.temp.stringRes(R.string.income_uppercase),
             currencyCode = currency,
             amount = income,
             transactionCount = history
-                .filterIsInstance(Transaction::class.java)
-                .count { it.type == TransactionType.INCOME },
+                .filterIsInstance(TransactionOld::class.java)
+                .count { it.type == TrnType.INCOME },
             addButtonText = if (hasAddButtons) stringResource(R.string.add_income) else null,
             isIncome = true,
 
             itemColor = itemColor,
             onHeaderCardClicked = { incomeHeaderCardClicked() }
         ) {
-            onAddTransaction(TransactionType.INCOME)
+            onAddTransaction(TrnType.INCOME)
         }
 
         Spacer(Modifier.width(12.dp))
 
         HeaderCard(
-            title = stringRes(R.string.expenses_uppercase),
+            title = com.ivy.core.ui.temp.stringRes(R.string.expenses_uppercase),
             currencyCode = currency,
             amount = expenses,
             transactionCount = history
-                .filterIsInstance(Transaction::class.java)
-                .count { it.type == TransactionType.EXPENSE },
+                .filterIsInstance(TransactionOld::class.java)
+                .count { it.type == TrnType.EXPENSE },
             addButtonText = if (hasAddButtons) stringResource(R.string.add_expense) else null,
             isIncome = false,
 
             itemColor = itemColor,
             onHeaderCardClicked = { expenseHeaderCardClicked() }
         ) {
-            onAddTransaction(TransactionType.EXPENSE)
+            onAddTransaction(TrnType.EXPENSE)
         }
 
         Spacer(Modifier.width(16.dp))
@@ -153,7 +152,7 @@ private fun RowScope.HeaderCard(
         )
         Text(
             modifier = Modifier.padding(horizontal = 24.dp),
-            text = stringRes(R.string.transactions),
+            text = com.ivy.core.ui.temp.stringRes(R.string.transactions),
             style = UI.typo.b2.style(
                 color = contrastColor,
                 fontWeight = FontWeight.Normal

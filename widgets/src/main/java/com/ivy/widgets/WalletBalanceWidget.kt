@@ -13,7 +13,7 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.currentState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import com.ivy.base.toCloseTimeRange
-import com.ivy.wallet.domain.action.account.AccountsAct
+import com.ivy.wallet.domain.action.account.AccountsActOld
 import com.ivy.wallet.domain.action.settings.SettingsAct
 import com.ivy.wallet.domain.action.wallet.CalcIncomeExpenseAct
 import com.ivy.wallet.domain.action.wallet.CalcWalletBalanceAct
@@ -54,13 +54,13 @@ class WalletBalanceReceiver : GlanceAppWidgetReceiver() {
     lateinit var settingsAct: SettingsAct
 
     @Inject
-    lateinit var accountsAct: AccountsAct
+    lateinit var accountsAct: AccountsActOld
 
     @Inject
     lateinit var calcIncomeExpenseAct: CalcIncomeExpenseAct
 
     @Inject
-    lateinit var ivyContext: com.ivy.base.IvyWalletCtx
+    lateinit var ivyContext: com.ivy.core.ui.temp.IvyWalletCtx
 
     @Inject
     lateinit var sharedPrefs: SharedPrefs

@@ -7,22 +7,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ivy.base.Constants
 import com.ivy.base.R
-import com.ivy.base.stringRes
 import com.ivy.billing.IvyBilling
 import com.ivy.data.Theme
-import com.ivy.data.transaction.TransactionType
+import com.ivy.data.transaction.TrnType
 import com.ivy.frp.test.TestIdlingResource
 import com.ivy.frp.view.navigation.Navigation
 import com.ivy.screens.EditTransaction
 import com.ivy.screens.Main
 import com.ivy.screens.Onboarding
+import com.ivy.wallet.domain.action.global.StartDayOfMonthAct
 import com.ivy.wallet.domain.deprecated.logic.notification.TransactionReminderLogic
 import com.ivy.wallet.io.network.IvySession
 import com.ivy.wallet.io.persistence.SharedPrefs
 import com.ivy.wallet.io.persistence.dao.SettingsDao
 import com.ivy.wallet.utils.ioThread
 import com.ivy.wallet.utils.readOnly
-import com.ivy.wallet.utils.sendToCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,13 +31,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
-    private val ivyContext: com.ivy.base.IvyWalletCtx,
+    private val ivyContext: com.ivy.core.ui.temp.IvyWalletCtx,
     private val nav: Navigation,
     private val settingsDao: SettingsDao,
     private val sharedPrefs: SharedPrefs,
     private val ivySession: IvySession,
     private val ivyBilling: IvyBilling,
-    private val transactionReminderLogic: TransactionReminderLogic
+    private val transactionReminderLogic: TransactionReminderLogic,
+    private val startDayOfMonthAct: StartDayOfMonthAct
 ) : ViewModel() {
 
     companion object {
@@ -60,7 +60,7 @@ class RootViewModel @Inject constructor(
                     ?: if (systemDarkMode) Theme.DARK else Theme.LIGHT
                 ivyContext.switchTheme(theme)
 
-                ivyContext.initStartDayOfMonthInMemory(sharedPrefs = sharedPrefs)
+                startDayOfMonthAct(Unit)
             }
 
             TestIdlingResource.decrement()
@@ -96,9 +96,9 @@ class RootViewModel @Inject constructor(
     }
 
     private fun handleSpecialStart(intent: Intent): Boolean {
-        val addTrnType: TransactionType? = try {
-            intent.getSerializableExtra(EXTRA_ADD_TRANSACTION_TYPE) as? TransactionType
-                ?: TransactionType.valueOf(intent.getStringExtra(EXTRA_ADD_TRANSACTION_TYPE) ?: "")
+        val addTrnType: TrnType? = try {
+            intent.getSerializableExtra(EXTRA_ADD_TRANSACTION_TYPE) as? TrnType
+                ?: TrnType.valueOf(intent.getStringExtra(EXTRA_ADD_TRANSACTION_TYPE) ?: "")
         } catch (e: IllegalArgumentException) {
             null
         }
@@ -123,13 +123,13 @@ class RootViewModel @Inject constructor(
     ): BiometricPrompt.AuthenticationCallback {
         return object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                Timber.d(stringRes(R.string.authentication_succeeded))
+                Timber.d(com.ivy.core.ui.temp.stringRes(R.string.authentication_succeeded))
                 unlockApp()
                 onAuthSuccess()
             }
 
             override fun onAuthenticationFailed() {
-                Timber.d(stringRes(R.string.authentication_failed))
+                Timber.d(com.ivy.core.ui.temp.stringRes(R.string.authentication_failed))
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
@@ -154,7 +154,6 @@ class RootViewModel @Inject constructor(
 
             },
             onError = { code, msg ->
-                sendToCrashlytics("IvyActivity Billing error: code=$code: $msg")
                 Timber.e("Billing error code=$code: $msg")
             }
         )

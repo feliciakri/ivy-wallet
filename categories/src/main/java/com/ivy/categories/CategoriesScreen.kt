@@ -23,10 +23,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ivy.base.IvyWalletPreview
 import com.ivy.base.R
 import com.ivy.base.SortOrder
-import com.ivy.data.Category
+import com.ivy.data.CategoryOld
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.frp.view.navigation.navigation
@@ -530,12 +529,12 @@ private fun SelectTypeButton(
 @Preview
 @Composable
 private fun Preview() {
-    IvyWalletPreview {
+    com.ivy.core.ui.temp.Preview {
         val state = CategoriesScreenState(
             baseCurrency = "BGN",
             categories = listOf(
                 CategoryData(
-                    category = Category(
+                    category = CategoryOld(
                         "Groceries",
                         Green.toArgb(),
                         icon = "groceries"
@@ -545,7 +544,7 @@ private fun Preview() {
                     monthlyIncome = 3045.0
                 ),
                 CategoryData(
-                    category = Category(
+                    category = CategoryOld(
                         "Fun",
                         Orange.toArgb(),
                         icon = "game"
@@ -555,13 +554,13 @@ private fun Preview() {
                     monthlyIncome = 0.0
                 ),
                 CategoryData(
-                    category = Category("Ivy", IvyDark.toArgb()),
+                    category = CategoryOld("Ivy", IvyDark.toArgb()),
                     monthlyBalance = 1200.0,
                     monthlyExpenses = 0.0,
                     monthlyIncome = 5000.0
                 ),
                 CategoryData(
-                    category = Category(
+                    category = CategoryOld(
                         "Food",
                         GreenLight.toArgb(),
                         icon = "atom"
@@ -571,7 +570,7 @@ private fun Preview() {
                     monthlyIncome = 8000.48
                 ),
                 CategoryData(
-                    category = Category(
+                    category = CategoryOld(
                         "Shisha",
                         GreenDark.toArgb(),
                         icon = "drink"

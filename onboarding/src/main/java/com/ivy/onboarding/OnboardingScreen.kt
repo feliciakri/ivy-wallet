@@ -8,12 +8,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ivy.base.IvyWalletPreview
-import com.ivy.data.Account
-import com.ivy.data.Category
+import com.ivy.base.AccountBalance
+import com.ivy.data.AccountOld
+import com.ivy.data.CategoryOld
 import com.ivy.data.IvyCurrency
 import com.ivy.frp.view.navigation.onScreenStart
-import com.ivy.base.AccountBalance
 import com.ivy.onboarding.steps.*
 import com.ivy.onboarding.viewmodel.OnboardingViewModel
 import com.ivy.screens.Onboarding
@@ -86,7 +85,7 @@ private fun BoxWithConstraintsScope.UI(
     accounts: List<AccountBalance>,
 
     categorySuggestions: List<CreateCategoryData>,
-    categories: List<Category>,
+    categories: List<CategoryOld>,
 
     onLoginWithGoogle: () -> Unit = {},
     onSkip: () -> Unit = {},
@@ -97,12 +96,12 @@ private fun BoxWithConstraintsScope.UI(
     onSetCurrency: (IvyCurrency) -> Unit = {},
 
     onCreateAccount: (CreateAccountData) -> Unit = { },
-    onEditAccount: (Account, Double) -> Unit = { _, _ -> },
+    onEditAccount: (AccountOld, Double) -> Unit = { _, _ -> },
     onAddAccountsDone: () -> Unit = {},
     onAddAccountsSkip: () -> Unit = {},
 
     onCreateCategory: (CreateCategoryData) -> Unit = {},
-    onEditCategory: (Category) -> Unit = {},
+    onEditCategory: (CategoryOld) -> Unit = {},
     onAddCategoryDone: () -> Unit = {},
     onAddCategorySkip: () -> Unit = {},
 ) {
@@ -160,7 +159,7 @@ private fun BoxWithConstraintsScope.UI(
 @Preview
 @Composable
 private fun PreviewOnboarding() {
-    IvyWalletPreview {
+    com.ivy.core.ui.temp.Preview {
         UI(
             accountSuggestions = listOf(),
             accounts = listOf(),

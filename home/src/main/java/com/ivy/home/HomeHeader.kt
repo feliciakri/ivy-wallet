@@ -20,9 +20,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ivy.base.Constants
-import com.ivy.base.TimePeriod
-import com.ivy.base.ivyWalletCtx
-import com.ivy.data.transaction.TransactionType
+import com.ivy.core.ui.temp.trash.TimePeriod
+import com.ivy.data.transaction.TrnType
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.frp.view.navigation.navigation
@@ -163,7 +162,7 @@ private fun HeaderStickyRow(
                 }
             ),
             iconStart = R.drawable.ic_calendar,
-            text = period.toDisplayShort(ivyWalletCtx().startDayOfMonth),
+            text = period.toDisplayShort(com.ivy.core.ui.temp.ivyWalletCtx().startDayOfMonth),
         ) {
             onShowMonthModal()
         }
@@ -283,7 +282,7 @@ private fun IncomeExpenses(
         ) {
             nav.navigateTo(
                 PieChartStatistic(
-                    type = TransactionType.INCOME,
+                    type = TrnType.INCOME,
                 )
             )
         }
@@ -302,7 +301,7 @@ private fun IncomeExpenses(
         ) {
             nav.navigateTo(
                 PieChartStatistic(
-                    type = TransactionType.EXPENSE,
+                    type = TrnType.EXPENSE,
                 )
             )
         }

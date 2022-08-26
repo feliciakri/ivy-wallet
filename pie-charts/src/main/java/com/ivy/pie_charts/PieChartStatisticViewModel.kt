@@ -1,7 +1,9 @@
 package com.ivy.pie_charts
 
-import com.ivy.base.*
-import com.ivy.data.Category
+import com.ivy.base.FromToTimeRange
+import com.ivy.base.isSubCategory
+import com.ivy.core.ui.temp.trash.TimePeriod
+import com.ivy.data.CategoryOld
 import com.ivy.frp.then
 import com.ivy.frp.thenInvokeAfter
 import com.ivy.frp.viewmodel.FRPViewModel
@@ -25,7 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PieChartStatisticViewModel @Inject constructor(
     private val settingsDao: SettingsDao,
-    private val ivyContext: IvyWalletCtx,
+    private val ivyContext: com.ivy.core.ui.temp.IvyWalletCtx,
     private val pieChartAct: PieChartAct,
     private val subCategoryAct: SubCategoryAct,
     private val sharedPrefs: SharedPrefs
@@ -69,7 +71,7 @@ class PieChartStatisticViewModel @Inject constructor(
 
     private suspend fun initializePreliminaryData(
         screen: PieChartStatistic,
-        ivyContext: IvyWalletCtx
+        ivyContext: com.ivy.core.ui.temp.IvyWalletCtx
     ) = suspend {
         val baseCurrency = ioThread { settingsDao.findFirst() }.currency
         baseCurrency
@@ -225,13 +227,13 @@ class PieChartStatisticViewModel @Inject constructor(
     }
 
     //-----------------------------------------------------------------------------------
-    private suspend fun onCategoryClickedNew(clickedCategory: Category?) =
+    private suspend fun onCategoryClickedNew(clickedCategory: CategoryOld?) =
         suspend { clickedCategory } then
                 ::computeReorderParams then
                 ::reorderSelectedCategoryToTop then
                 ::finishReordering
 
-    private fun computeReorderParams(clickedCategory: Category?): Pair<SelectedCategory?, SelectedCategory?> {
+    private fun computeReorderParams(clickedCategory: CategoryOld?): Pair<SelectedCategory?, SelectedCategory?> {
         val selectedCategory = if (clickedCategory == stateVal().selectedCategory?.category)
             null
         else
@@ -391,7 +393,7 @@ class PieChartStatisticViewModel @Inject constructor(
     //clears the selectedCategory if and only if selected category is subcategory of parentCategory
     private fun computeUpdatedSelectedCategory(
         selectedCategory: SelectedCategory?,
-        parentCategory: Category?
+        parentCategory: CategoryOld?
     ): SelectedCategory? {
         return if (selectedCategory != null && selectedCategory.category?.parentCategoryId == parentCategory?.id)
             null
@@ -447,7 +449,7 @@ class PieChartStatisticViewModel @Inject constructor(
             }
     }
 
-    private fun findParentCategory(subCategory: Category): Category? {
+    private fun findParentCategory(subCategory: CategoryOld): CategoryOld? {
         return stateVal().categoryAmounts.find { it.category?.id == subCategory.parentCategoryId }?.category
     }
 

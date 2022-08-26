@@ -8,10 +8,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ivy.accounts.AccountsTab
-import com.ivy.base.IvyWalletPreview
 import com.ivy.base.MainTab
-import com.ivy.base.ivyWalletCtx
-import com.ivy.data.transaction.TransactionType
+import com.ivy.data.transaction.TrnType
 import com.ivy.frp.view.navigation.navigation
 import com.ivy.frp.view.navigation.onScreenStart
 import com.ivy.home.HomeTab
@@ -34,7 +32,7 @@ fun BoxWithConstraintsScope.MainScreen(screen: Main) {
         viewModel.start(screen)
     }
 
-    val ivyContext = ivyWalletCtx()
+    val ivyContext = com.ivy.core.ui.temp.ivyWalletCtx()
     UI(
         screen = screen,
         tab = ivyContext.mainTab,
@@ -72,7 +70,7 @@ private fun BoxWithConstraintsScope.UI(
             nav.navigateTo(
                 EditTransaction(
                     initialTransactionId = null,
-                    type = TransactionType.INCOME
+                    type = TrnType.INCOME
                 )
             )
         },
@@ -80,7 +78,7 @@ private fun BoxWithConstraintsScope.UI(
             nav.navigateTo(
                 EditTransaction(
                     initialTransactionId = null,
-                    type = TransactionType.EXPENSE
+                    type = TrnType.EXPENSE
                 )
             )
         },
@@ -88,14 +86,14 @@ private fun BoxWithConstraintsScope.UI(
             nav.navigateTo(
                 EditTransaction(
                     initialTransactionId = null,
-                    type = TransactionType.TRANSFER
+                    type = TrnType.TRANSFER
                 )
             )
         },
         onAddPlannedPayment = {
             nav.navigateTo(
                 EditPlanned(
-                    type = TransactionType.EXPENSE,
+                    type = TrnType.EXPENSE,
                     plannedPaymentRuleId = null
                 )
             )
@@ -125,7 +123,7 @@ private fun BoxWithConstraintsScope.UI(
 @Preview
 @Composable
 private fun PreviewMainScreen() {
-    IvyWalletPreview {
+    com.ivy.core.ui.temp.Preview {
         UI(
             screen = Main,
             tab = MainTab.HOME,

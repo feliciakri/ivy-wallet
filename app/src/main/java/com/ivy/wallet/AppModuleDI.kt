@@ -4,7 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ivy.billing.IvyBilling
-import com.ivy.exchange.ExchangeRateDao
+import com.ivy.exchange.cache.ExchangeRateDao
 import com.ivy.frp.view.navigation.Navigation
 import com.ivy.journey.domain.CustomerJourneyLogic
 import com.ivy.notifications.NotificationService
@@ -26,6 +26,9 @@ import com.ivy.wallet.io.network.IvySession
 import com.ivy.wallet.io.network.LocalDateTimeTypeAdapter
 import com.ivy.wallet.io.network.RestClient
 import com.ivy.wallet.io.network.error.ErrorCode
+import com.ivy.wallet.io.network.service.AccountService
+import com.ivy.wallet.io.network.service.CategoryService
+import com.ivy.wallet.io.network.service.TransactionService
 import com.ivy.wallet.io.persistence.IvyRoomDatabase
 import com.ivy.wallet.io.persistence.SharedPrefs
 import com.ivy.wallet.io.persistence.dao.*
@@ -42,8 +45,8 @@ import javax.inject.Singleton
 object AppModuleDI {
     @Provides
     @Singleton
-    fun provideIvyContext(): com.ivy.base.IvyWalletCtx {
-        return com.ivy.base.IvyWalletCtx()
+    fun provideIvyContext(): com.ivy.core.ui.temp.IvyWalletCtx {
+        return com.ivy.core.ui.temp.IvyWalletCtx()
     }
 
     @Provides
@@ -539,7 +542,7 @@ object AppModuleDI {
         transactionDao: TransactionDao,
         plannedPaymentRuleDao: PlannedPaymentRuleDao,
         sharedPrefs: SharedPrefs,
-        ivyContext: com.ivy.base.IvyWalletCtx
+        ivyContext: com.ivy.core.ui.temp.IvyWalletCtx
     ): CustomerJourneyLogic {
         return CustomerJourneyLogic(
             transactionDao = transactionDao,
@@ -577,7 +580,7 @@ object AppModuleDI {
         categoryDao: CategoryDao,
         transactionUploader: TransactionUploader,
         transactionDao: TransactionDao,
-        ivyContext: com.ivy.base.IvyWalletCtx,
+        ivyContext: com.ivy.core.ui.temp.IvyWalletCtx,
         loanDao: LoanDao,
         loanRecordDao: LoanRecordDao,
         exchangeRatesLogic: ExchangeRatesLogic,
@@ -629,4 +632,19 @@ object AppModuleDI {
             sharedPrefs
         )
     }
+
+    @Provides
+    fun provideAccountService(
+        restClient: RestClient
+    ): AccountService = restClient.accountService
+
+    @Provides
+    fun provideCategoryService(
+        restClient: RestClient
+    ): CategoryService = restClient.categoryService
+
+    @Provides
+    fun provideTransactionService(
+        restClient: RestClient
+    ): TransactionService = restClient.transactionService
 }
