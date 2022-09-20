@@ -6,11 +6,12 @@ import com.ivy.common.toEpochMilli
 import com.ivy.data.Theme
 import com.ivy.data.loan.LoanType
 import com.ivy.data.planned.IntervalType
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.data.user.AuthProviderType
 import java.time.LocalDateTime
 import java.util.*
 
+@Deprecated("old")
 @SuppressWarnings("unused")
 class RoomTypeConverters {
     @TypeConverter
@@ -32,10 +33,10 @@ class RoomTypeConverters {
     fun parseTheme(value: String?) = value?.let { Theme.valueOf(it) }
 
     @TypeConverter
-    fun saveTransactionType(value: TrnType?) = value?.name
+    fun saveTransactionType(value: TrnTypeOld?) = value?.name
 
     @TypeConverter
-    fun parseTransactionType(value: String?) = value?.let { TrnType.valueOf(it) }
+    fun parseTransactionType(value: String?) = value?.let { TrnTypeOld.valueOf(it) }
 
     @TypeConverter
     fun saveAuthProviderType(authProviderType: AuthProviderType?) = authProviderType?.name

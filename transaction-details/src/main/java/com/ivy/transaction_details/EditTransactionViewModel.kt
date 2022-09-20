@@ -8,7 +8,7 @@ import com.ivy.base.EditTransactionDisplayLoan
 import com.ivy.data.AccountOld
 import com.ivy.data.CategoryOld
 import com.ivy.data.transaction.TransactionOld
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.frp.test.TestIdlingResource
 import com.ivy.frp.view.navigation.Navigation
 import com.ivy.screens.EditTransaction
@@ -67,7 +67,7 @@ class EditTransactionViewModel @Inject constructor(
     private val accountByIdAct: AccountByIdAct
 ) : ViewModel() {
 
-    private val _transactionType = MutableLiveData<TrnType>()
+    private val _transactionType = MutableLiveData<TrnTypeOld>()
     val transactionType = _transactionType
 
     private val _initialTitle = MutableStateFlow<String?>(null)
@@ -259,7 +259,8 @@ class EditTransactionViewModel @Inject constructor(
         _currency.value = account.currency ?: baseCurrency()
     }
 
-    private suspend fun baseCurrency(): String = ioThread { settingsDao.findFirst().currency }
+    private suspend fun baseCurrency(): String =
+        ioThread { settingsDao.findFirstSuspend().currency }
 
     fun onAmountChanged(newAmount: Double) {
         viewModelScope.launch {
@@ -378,7 +379,7 @@ class EditTransactionViewModel @Inject constructor(
         saveIfEditMode()
     }
 
-    fun onSetTransactionType(newTransactionType: TrnType) {
+    fun onSetTransactionType(newTransactionType: TrnTypeOld) {
         loadedTransaction = loadedTransaction().copy(
             type = newTransactionType
         )
@@ -556,7 +557,7 @@ class EditTransactionViewModel @Inject constructor(
     private suspend fun transferToAmount(
         amount: Double
     ): Double? {
-        if (transactionType.value != TrnType.TRANSFER) return null
+        if (transactionType.value != TrnTypeOld.TRANSFER) return null
         val toCurrency = toAccount.value?.currency ?: baseCurrency()
         val fromCurrency = account.value?.currency ?: baseCurrency()
 
@@ -578,7 +579,7 @@ class EditTransactionViewModel @Inject constructor(
     }
 
     private fun validateTransaction(): Boolean {
-        if (transactionType.value == TrnType.TRANSFER && toAccount.value == null) {
+        if (transactionType.value == TrnTypeOld.TRANSFER && toAccount.value == null) {
             return false
         }
 

@@ -21,7 +21,7 @@ android {
         versionCode = com.ivy.buildsrc.Project.versionCode
         versionName = com.ivy.buildsrc.Project.versionName
 
-        testInstrumentationRunner = "com.ivy.wallet.HiltTestRunner"
+        testInstrumentationRunner = "com.ivy.wallet.IvyAppTestRunner"
 
         kapt {
             arguments {
@@ -126,7 +126,7 @@ android {
 dependencies {
     implementation(project(":common"))
     implementation(project(":common"))
-    implementation(project(":ui-common"))
+    implementation(project(":design-system"))
     implementation(project(":app-base"))
     implementation(project(":core:ui"))
     implementation(project(":screens"))
@@ -140,7 +140,7 @@ dependencies {
     implementation(project(":settings"))
     implementation(project(":search-transactions"))
     implementation(project(":transaction-details"))
-    implementation(project(":data-model"))
+    implementation(project(":core:data-model"))
     implementation(project(":ui-components-old"))
     implementation(project(":customer-journey"))
     implementation(project(":widgets"))

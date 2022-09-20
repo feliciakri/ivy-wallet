@@ -20,9 +20,10 @@ import androidx.compose.ui.unit.dp
 import com.ivy.base.R
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.navigation
 import com.ivy.old.OnboardingToolbar
-import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportType
+import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportApp
 import com.ivy.wallet.ui.theme.components.GradientCutBottom
 import com.ivy.wallet.ui.theme.components.IvyIcon
 
@@ -32,9 +33,9 @@ fun BoxWithConstraintsScope.ImportFrom(
     hasSkip: Boolean,
 
     onSkip: () -> Unit = {},
-    onImportFrom: (ImportType) -> Unit = {},
+    onImportFrom: (ImportApp) -> Unit = {},
 ) {
-    val importTypes = ImportType.values()
+    val importApps = ImportApp.values()
 
     LazyColumn(
         modifier = Modifier
@@ -66,9 +67,9 @@ fun BoxWithConstraintsScope.ImportFrom(
             Spacer(Modifier.height(24.dp))
         }
 
-        items(importTypes) {
+        items(importApps) {
             ImportOption(
-                importType = it,
+                importApp = it,
                 onImportFrom = onImportFrom
             )
         }
@@ -86,8 +87,8 @@ fun BoxWithConstraintsScope.ImportFrom(
 
 @Composable
 private fun ImportOption(
-    importType: ImportType,
-    onImportFrom: (ImportType) -> Unit
+    importApp: ImportApp,
+    onImportFrom: (ImportApp) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -96,7 +97,7 @@ private fun ImportOption(
             .clip(UI.shapes.r3)
             .background(UI.colors.medium, UI.shapes.r3)
             .clickable {
-                onImportFrom(importType)
+                onImportFrom(importApp)
             }
             .padding(vertical = 24.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -105,13 +106,13 @@ private fun ImportOption(
 
         IvyIcon(
             modifier = Modifier.size(32.dp),
-            icon = importType.logo(),
+            icon = importApp.logo(),
             tint = Color.Unspecified
         )
 
         Text(
             modifier = Modifier.padding(start = 16.dp, end = 32.dp),
-            text = importType.listName(),
+            text = importApp.listName(),
             style = UI.typo.b2.style(
                 fontWeight = FontWeight.Bold,
                 color = UI.colors.pureInverse
@@ -126,7 +127,7 @@ private fun ImportOption(
 @Preview
 @Composable
 private fun Preview() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         ImportFrom(
             hasSkip = true,
         )

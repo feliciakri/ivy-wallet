@@ -20,9 +20,10 @@ import com.ivy.data.AccountOld
 import com.ivy.data.CategoryOld
 import com.ivy.data.planned.IntervalType
 import com.ivy.data.planned.PlannedPaymentRule
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.navigation
 import com.ivy.frp.view.navigation.onScreenStart
 import com.ivy.screens.EditPlanned
@@ -113,7 +114,7 @@ private fun BoxWithConstraintsScope.UI(
         onAdd = {
             nav.navigateTo(
                 EditPlanned(
-                    type = TrnType.EXPENSE,
+                    type = TrnTypeOld.EXPENSE,
                     plannedPaymentRuleId = null
                 )
             )
@@ -124,7 +125,7 @@ private fun BoxWithConstraintsScope.UI(
 @Preview
 @Composable
 private fun Preview() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         val account = AccountOld(name = "Cash", color = Green.toArgb())
         val food = CategoryOld(name = "Food", color = Ivy.toArgb())
         val shisha = CategoryOld(name = "Shisha", color = Orange.toArgb())
@@ -144,7 +145,7 @@ private fun Preview() {
                     oneTime = true,
                     intervalType = null,
                     intervalN = null,
-                    type = TrnType.EXPENSE
+                    type = TrnTypeOld.EXPENSE
                 )
             ),
             oneTimeExpenses = 250.75,
@@ -159,7 +160,7 @@ private fun Preview() {
                     oneTime = false,
                     intervalType = IntervalType.MONTH,
                     intervalN = 1,
-                    type = TrnType.EXPENSE
+                    type = TrnTypeOld.EXPENSE
                 )
             ),
             recurringExpenses = 1025.5,

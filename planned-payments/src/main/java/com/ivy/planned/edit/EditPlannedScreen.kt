@@ -19,7 +19,8 @@ import com.ivy.base.R
 import com.ivy.data.AccountOld
 import com.ivy.data.CategoryOld
 import com.ivy.data.planned.IntervalType
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.onScreenStart
 import com.ivy.screens.EditPlanned
 import com.ivy.wallet.domain.deprecated.logic.model.CreateAccountData
@@ -106,7 +107,7 @@ private fun BoxWithConstraintsScope.UI(
     intervalType: IntervalType?,
     oneTime: Boolean,
 
-    type: TrnType,
+    type: TrnTypeOld,
     currency: String,
     initialTitle: String?,
     description: String?,
@@ -123,7 +124,7 @@ private fun BoxWithConstraintsScope.UI(
     onAmountChanged: (Double) -> Unit,
     onCategoryChanged: (CategoryOld?) -> Unit,
     onAccountChanged: (AccountOld) -> Unit,
-    onSetTransactionType: (TrnType) -> Unit,
+    onSetTransactionType: (TrnTypeOld) -> Unit,
 
     onCreateCategory: (CreateCategoryData) -> Unit = {},
     onSave: () -> Unit,
@@ -199,7 +200,7 @@ private fun BoxWithConstraintsScope.UI(
             }
         )
 
-        if (type != TrnType.TRANSFER) {
+        if (type != TrnTypeOld.TRANSFER) {
             Spacer(Modifier.height(32.dp))
 
             Category(
@@ -402,13 +403,13 @@ private fun BoxWithConstraintsScope.UI(
 
 private fun shouldFocusCategory(
     category: CategoryOld?,
-    type: TrnType
-): Boolean = category == null && type != TrnType.TRANSFER
+    type: TrnTypeOld
+): Boolean = category == null && type != TrnTypeOld.TRANSFER
 
 private fun shouldFocusTitle(
     titleTextFieldValue: TextFieldValue,
-    type: TrnType
-): Boolean = titleTextFieldValue.text.isBlank() && type != TrnType.TRANSFER
+    type: TrnTypeOld
+): Boolean = titleTextFieldValue.text.isBlank() && type != TrnTypeOld.TRANSFER
 
 private fun shouldFocusRecurring(
     startDate: LocalDateTime?,
@@ -430,9 +431,9 @@ private fun shouldFocusAmount(amount: Double) = amount == 0.0
 @Preview
 @Composable
 private fun Preview() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         UI(
-            screen = EditPlanned(null, TrnType.EXPENSE),
+            screen = EditPlanned(null, TrnTypeOld.EXPENSE),
             oneTime = false,
             startDate = null,
             intervalN = null,
@@ -443,7 +444,7 @@ private fun Preview() {
             category = null,
             account = AccountOld(name = "phyre", color = Green.toArgb()),
             amount = 0.0,
-            type = TrnType.INCOME,
+            type = TrnTypeOld.INCOME,
 
             categories = emptyList(),
             accounts = emptyList(),

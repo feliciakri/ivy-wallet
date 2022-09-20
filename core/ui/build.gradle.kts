@@ -11,8 +11,8 @@ plugins {
 dependencies {
     Hilt()
     implementation(project(":common"))
-    implementation(project(":ui-common"))
-    implementation(project(":core:functions"))
+    implementation(project(":design-system"))
+    implementation(project(":core:domain"))
     implementation(project(":screens"))
     implementation(project(":app-base")) // TODO: temp dependency, remove later
 

@@ -28,9 +28,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ivy.core.ui.temp.trash.TimePeriod
 import com.ivy.data.CategoryOld
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.Navigation
 import com.ivy.frp.view.navigation.navigation
 import com.ivy.frp.view.navigation.onScreenStart
@@ -123,7 +124,7 @@ private fun BoxWithConstraintsScope.UI(
                 modifier = Modifier
                     .padding(start = 32.dp)
                     .testTag("piechart_title"),
-                text = if (state.transactionType == TrnType.EXPENSE) stringResource(R.string.expenses) else stringResource(
+                text = if (state.transactionType == TrnTypeOld.EXPENSE) stringResource(R.string.expenses) else stringResource(
                     R.string.income
                 ),
                 style = UI.typo.b1.style(
@@ -211,7 +212,7 @@ private fun BoxWithConstraintsScope.UI(
 
 @Composable
 private fun Header(
-    transactionType: TrnType,
+    transactionType: TrnTypeOld,
     period: TimePeriod,
     percentExpanded: Float,
 
@@ -225,7 +226,7 @@ private fun Header(
     onSelectPreviousMonth: () -> Unit,
 
     onClose: () -> Unit,
-    onAdd: (TrnType) -> Unit,
+    onAdd: (TrnTypeOld) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -267,7 +268,7 @@ private fun Header(
                     }
                 ),
                 iconStart = R.drawable.ic_calendar,
-                text = period.toDisplayShort(com.ivy.core.ui.temp.ivyWalletCtx().startDayOfMonth),
+                text = period.toDisplayShort(1),
             ) {
                 onShowMonthModal()
             }
@@ -275,7 +276,7 @@ private fun Header(
             if (percentExpanded > 0f) {
                 Spacer(Modifier.width(12.dp))
 
-                val backgroundGradient = if (transactionType == TrnType.EXPENSE)
+                val backgroundGradient = if (transactionType == TrnTypeOld.EXPENSE)
                     gradientExpenses() else GradientGreen
                 CircleButtonFilledGradient(
                     modifier = Modifier
@@ -287,7 +288,7 @@ private fun Header(
                     iconPadding = 4.dp,
                     icon = R.drawable.ic_plus,
                     backgroundGradient = backgroundGradient,
-                    tint = if (transactionType == TrnType.EXPENSE)
+                    tint = if (transactionType == TrnTypeOld.EXPENSE)
                         UI.colors.pure else White
                 ) {
                     onAdd(transactionType)
@@ -510,9 +511,9 @@ private fun PercentText(
 @Preview
 @Composable
 private fun Preview_Expense() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         val state = PieChartStatisticState(
-            transactionType = TrnType.EXPENSE,
+            transactionType = TrnTypeOld.EXPENSE,
             period = TimePeriod.currentMonth(
                 startDayOfMonth = 1
             ), //preview
@@ -564,9 +565,9 @@ private fun Preview_Expense() {
 @Preview
 @Composable
 private fun Preview_Income() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         val state = PieChartStatisticState(
-            transactionType = TrnType.INCOME,
+            transactionType = TrnTypeOld.INCOME,
             period = TimePeriod.currentMonth(
                 startDayOfMonth = 1
             ), //preview

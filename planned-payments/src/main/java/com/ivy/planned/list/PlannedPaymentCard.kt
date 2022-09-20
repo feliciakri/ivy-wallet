@@ -23,9 +23,10 @@ import com.ivy.data.AccountOld
 import com.ivy.data.CategoryOld
 import com.ivy.data.planned.IntervalType
 import com.ivy.data.planned.PlannedPaymentRule
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.navigation
 import com.ivy.screens.ItemStatistic
 import com.ivy.wallet.ui.component.transaction.TypeAmountCurrency
@@ -112,7 +113,7 @@ private fun PlannedPaymentHeaderRow(
 ) {
     val nav = navigation()
 
-    if (plannedPayment.type != TrnType.TRANSFER) {
+    if (plannedPayment.type != TrnTypeOld.TRANSFER) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -241,7 +242,7 @@ private fun RuleTextRow(
 @Preview
 @Composable
 private fun Preview_oneTime() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         LazyColumn(Modifier.fillMaxSize()) {
             val cash = AccountOld(name = "Cash", color = Green.toArgb())
             val food = CategoryOld(name = "Food", color = Green.toArgb())
@@ -262,7 +263,7 @@ private fun Preview_oneTime() {
                         oneTime = true,
                         intervalType = null,
                         intervalN = null,
-                        type = TrnType.EXPENSE
+                        type = TrnTypeOld.EXPENSE
                     )
                 ) {
 
@@ -275,7 +276,7 @@ private fun Preview_oneTime() {
 @Preview
 @Composable
 private fun Preview_recurring() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         LazyColumn(Modifier.fillMaxSize()) {
             val account = AccountOld(name = "Revolut", color = Green.toArgb())
             val shisha = CategoryOld(name = "Shisha", color = Orange.toArgb())
@@ -296,7 +297,7 @@ private fun Preview_recurring() {
                         oneTime = false,
                         intervalType = IntervalType.MONTH,
                         intervalN = 1,
-                        type = TrnType.EXPENSE
+                        type = TrnTypeOld.EXPENSE
                     )
                 ) {
 
@@ -309,7 +310,7 @@ private fun Preview_recurring() {
 @Preview
 @Composable
 private fun Preview_recurringError() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         LazyColumn(Modifier.fillMaxSize()) {
             val account = AccountOld(name = "Revolut", color = Green.toArgb())
             val shisha = CategoryOld(name = "Shisha", color = Orange.toArgb())
@@ -330,7 +331,7 @@ private fun Preview_recurringError() {
                         oneTime = false,
                         intervalType = null,
                         intervalN = null,
-                        type = TrnType.EXPENSE
+                        type = TrnTypeOld.EXPENSE
                     )
                 ) {
 

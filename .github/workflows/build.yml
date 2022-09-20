@@ -1,20 +1,9 @@
 name: Build
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events
-  push:
+on: [ push, pull_request, workflow_dispatch ]
 
-  #Triggers when a pull request event occurs (opened, synchronize, reopened)
-  pull_request:
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Fix GitHub Actions crashing with:
@@ -22,9 +11,7 @@ jobs:
     env:
       GRADLE_OPTS: -Dorg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g"
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout GIT
         uses: actions/checkout@v2
 
@@ -33,14 +20,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '11'
-      #----------------------------------------------------
-
-      #Security
-      #      - name: Validate Gradle Wrapper checksum
-      #        uses: gradle/wrapper-validation-action@v1
-      #
-      #      - name: Make Gradle Wrapper (gradlew) executable
-      #        run: chmod +x gradlew
       #----------------------------------------------------
 
       #Optimization
@@ -56,6 +35,16 @@ jobs:
       #---------------------------------------------------
 
       # RUN
-      - name: Build (Debug)
-        run: ./gradlew buildDebug
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Set commit SHA as an output so it can be included in the APK filename
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Upload Ivy Wallet APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Ivy-Wallet-${{ steps.vars.outputs.sha_short }}.apk"
+          path: app/build/outputs/apk/debug/app-debug.apk
       #------------------------------------------------------------------

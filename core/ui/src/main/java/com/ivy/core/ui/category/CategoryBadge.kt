@@ -4,15 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
-import com.ivy.core.functions.category.dummyCategory
+import com.ivy.core.domain.pure.dummy.dummyCategory
 import com.ivy.core.ui.R
 import com.ivy.core.ui.component.BadgeComponent
-import com.ivy.core.ui.temp.ComponentPreview
 import com.ivy.data.category.Category
 import com.ivy.data.icon.IvyIcon
 import com.ivy.design.l0_system.Black
 import com.ivy.design.l0_system.Purple
 import com.ivy.design.l0_system.toComposeColor
+import com.ivy.design.util.ComponentPreview
 
 @Composable
 fun Category.Badge(

@@ -22,10 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.ivy.base.R
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.navigation
 import com.ivy.import_data.flow.ImportSteps
 import com.ivy.old.OnboardingToolbar
-import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportType
+import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportApp
 import com.ivy.wallet.ui.theme.GradientIvy
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.White
@@ -39,7 +40,7 @@ import com.ivy.wallet.utils.drawColoredShadow
 @Composable
 fun BoxWithConstraintsScope.ImportInstructions(
     hasSkip: Boolean,
-    importType: ImportType,
+    importApp: ImportApp,
 
     onSkip: () -> Unit,
     onUploadClick: () -> Unit,
@@ -85,7 +86,7 @@ fun BoxWithConstraintsScope.ImportInstructions(
             Spacer(Modifier.height(24.dp))
 
             App(
-                importType = importType
+                importApp = importApp
             )
 
             Spacer(Modifier.height(24.dp))
@@ -107,7 +108,7 @@ fun BoxWithConstraintsScope.ImportInstructions(
             )
 
             ImportSteps(
-                type = importType,
+                type = importApp,
                 onUploadClick = onUploadClick
             )
         }
@@ -318,7 +319,7 @@ fun StepTitle(
 
 @Composable
 private fun App(
-    importType: ImportType
+    importApp: ImportApp
 ) {
     val rootScreen = com.ivy.core.ui.temp.rootScreen()
 
@@ -327,23 +328,23 @@ private fun App(
             .padding(horizontal = 32.dp)
             .clickable {
                 rootScreen.openGooglePlayAppPage(
-                    appId = importType.appId()
+                    appId = importApp.appId()
                 )
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
         IvyIcon(
             modifier = Modifier
-                .drawColoredShadow(importType.color())
+                .drawColoredShadow(importApp.color())
                 .size(48.dp),
-            icon = importType.logo(),
+            icon = importApp.logo(),
             tint = Color.Unspecified
         )
 
         Spacer(Modifier.width(16.dp))
 
         Text(
-            text = importType.appName(),
+            text = importApp.appName(),
             style = UI.typo.b2.style(
                 fontWeight = Bold
             )
@@ -355,10 +356,10 @@ private fun App(
 @Preview
 @Composable
 private fun Preview() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         ImportInstructions(
             hasSkip = true,
-            importType = ImportType.MONEY_MANAGER,
+            importApp = ImportApp.MONEY_MANAGER,
             onSkip = {}
         ) {
 

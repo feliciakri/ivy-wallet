@@ -20,8 +20,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.ivy.data.CategoryOld
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.design.l0_system.UI
+import com.ivy.design.util.ComponentPreview
 import com.ivy.pie_charts.model.CategoryAmount
 import com.ivy.wallet.ui.theme.*
 import com.ivy.wallet.ui.theme.components.IvyIcon
@@ -39,7 +40,7 @@ const val RADIUS_DP = 112f
 
 @Composable
 fun PieChart(
-    type: TrnType,
+    type: TrnTypeOld,
     categoryAmounts: List<CategoryAmount>,
     selectedCategory: SelectedCategory?,
 
@@ -85,7 +86,7 @@ fun PieChart(
                 .clip(CircleShape)
                 .background(UI.colors.medium)
                 .padding(all = 20.dp),
-            icon = if (type == TrnType.INCOME) R.drawable.ic_income else R.drawable.ic_expense,
+            icon = if (type == TrnTypeOld.INCOME) R.drawable.ic_income else R.drawable.ic_expense,
             tint = Gray
         )
     }
@@ -262,14 +263,14 @@ private class PieChartView(context: Context) : View(context) {
 @Preview
 @Composable
 private fun Preview() {
-    com.ivy.core.ui.temp.ComponentPreview {
+    ComponentPreview {
         Column(
             Modifier.fillMaxSize()
         ) {
             Spacer(Modifier.weight(1f))
 
             PieChart(
-                type = TrnType.EXPENSE,
+                type = TrnTypeOld.EXPENSE,
                 categoryAmounts = listOf(
                     CategoryAmount(
                         category = CategoryOld("Bills", Green.toArgb()),

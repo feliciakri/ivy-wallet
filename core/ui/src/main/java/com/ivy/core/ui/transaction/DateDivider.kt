@@ -13,17 +13,17 @@ import androidx.compose.ui.unit.dp
 import com.ivy.base.R
 import com.ivy.common.dateNowUTC
 import com.ivy.common.formatLocal
+import com.ivy.core.domain.pure.dummy.dummyValue
 import com.ivy.core.functions.transaction.dummyDateDivider
-import com.ivy.core.functions.transaction.dummyValue
-import com.ivy.core.ui.temp.ComponentPreview
 import com.ivy.core.ui.value.formatAmount
+import com.ivy.data.Value
 import com.ivy.data.transaction.TrnListItem
-import com.ivy.data.transaction.Value
 import com.ivy.design.l0_system.Gray
 import com.ivy.design.l0_system.Green
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.design.l1_buildingBlocks.SpacerVer
+import com.ivy.design.util.ComponentPreview
 import java.time.LocalDate
 
 @Composable

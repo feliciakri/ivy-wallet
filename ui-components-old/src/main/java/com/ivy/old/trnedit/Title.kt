@@ -25,9 +25,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ivy.base.Constants
 import com.ivy.base.R
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.util.ComponentPreview
 import com.ivy.wallet.ui.theme.components.IvyTitleTextField
 import com.ivy.wallet.utils.keyboardVisibleState
 import com.ivy.wallet.utils.selectEndTextFieldValue
@@ -37,7 +38,7 @@ import java.util.*
 
 @Composable
 fun ColumnScope.Title(
-    type: TrnType,
+    type: TrnTypeOld,
     titleFocus: FocusRequester,
     initialTransactionId: UUID?,
 
@@ -57,9 +58,9 @@ fun ColumnScope.Title(
             .padding(horizontal = 24.dp),
         value = titleTextFieldValue,
         hint = when (type) {
-            TrnType.INCOME -> stringResource(R.string.income_title)
-            TrnType.EXPENSE -> stringResource(R.string.expense_title)
-            TrnType.TRANSFER -> stringResource(R.string.transfer_title)
+            TrnTypeOld.INCOME -> stringResource(R.string.income_title)
+            TrnTypeOld.EXPENSE -> stringResource(R.string.expense_title)
+            TrnTypeOld.TRANSFER -> stringResource(R.string.transfer_title)
         },
         keyboardOptions = KeyboardOptions(
             autoCorrect = true,
@@ -131,10 +132,10 @@ private fun Suggestion(
 @Preview
 @Composable
 private fun PreviewTitleWithSuggestions() {
-    com.ivy.core.ui.temp.ComponentPreview {
+    ComponentPreview {
         Column {
             Title(
-                type = TrnType.EXPENSE,
+                type = TrnTypeOld.EXPENSE,
                 titleFocus = FocusRequester(),
                 initialTransactionId = null,
                 titleTextFieldValue = selectEndTextFieldValue(""),

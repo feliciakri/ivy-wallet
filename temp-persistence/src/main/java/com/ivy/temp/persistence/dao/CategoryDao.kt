@@ -5,8 +5,10 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.ivy.wallet.io.persistence.data.CategoryEntity
+import kotlinx.coroutines.flow.Flow
 import java.util.*
 
+@Deprecated("use `:core:persistence`")
 @Dao
 interface CategoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -16,7 +18,10 @@ interface CategoryDao {
     suspend fun save(value: List<CategoryEntity>)
 
     @Query("SELECT * FROM categories WHERE isDeleted = 0 ORDER BY orderNum ASC")
-    suspend fun findAll(): List<CategoryEntity>
+    suspend fun findAllSuspend(): List<CategoryEntity>
+
+    @Query("SELECT * FROM categories WHERE isDeleted = 0 ORDER BY orderNum ASC")
+    fun findAll(): Flow<List<CategoryEntity>>
 
     @Query("SELECT * FROM categories WHERE isSynced = :synced AND isDeleted = :deleted")
     suspend fun findByIsSyncedAndIsDeleted(

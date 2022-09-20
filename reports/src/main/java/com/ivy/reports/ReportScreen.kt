@@ -26,9 +26,10 @@ import com.ivy.base.data.DueSection
 import com.ivy.data.AccountOld
 import com.ivy.data.CategoryOld
 import com.ivy.data.pure.IncomeExpensePair
-import com.ivy.data.transaction.TrnType
+import com.ivy.data.transaction.TrnTypeOld
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.navigation
 import com.ivy.frp.view.navigation.onScreenStart
 import com.ivy.old.IncomeExpensesCards
@@ -64,7 +65,6 @@ private fun BoxWithConstraintsScope.UI(
     state: ReportScreenState = ReportScreenState(),
     onEventHandler: (ReportScreenEvent) -> Unit = {}
 ) {
-    val ivyContext = com.ivy.core.ui.temp.ivyWalletCtx()
     val nav = navigation()
     val listState = rememberLazyListState()
     val context = LocalContext.current
@@ -148,7 +148,7 @@ private fun BoxWithConstraintsScope.UI(
                     if (state.transactions.isNotEmpty())
                         nav.navigateTo(
                             PieChartStatistic(
-                                type = TrnType.INCOME,
+                                type = TrnTypeOld.INCOME,
                                 transactions = state.transactions,
                                 accountList = state.accountIdFilters,
                                 treatTransfersAsIncomeExpense = state.treatTransfersAsIncExp
@@ -159,7 +159,7 @@ private fun BoxWithConstraintsScope.UI(
                     if (state.transactions.isNotEmpty())
                         nav.navigateTo(
                             PieChartStatistic(
-                                type = TrnType.EXPENSE,
+                                type = TrnTypeOld.EXPENSE,
                                 transactions = state.transactions,
                                 accountList = state.accountIdFilters,
                                 treatTransfersAsIncomeExpense = state.treatTransfersAsIncExp
@@ -360,7 +360,7 @@ private fun Toolbar(
 @Preview
 @Composable
 private fun Preview() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         val acc1 = AccountOld("Cash", color = Green.toArgb())
         val acc2 = AccountOld("DSK", color = GreenDark.toArgb())
         val cat1 = CategoryOld("Science", color = Purple1Dark.toArgb(), icon = "atom")
@@ -402,7 +402,7 @@ private fun Preview() {
 @Preview
 @Composable
 private fun Preview_NO_FILTER() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview() {
         val acc1 = AccountOld("Cash", color = Green.toArgb())
         val acc2 = AccountOld("DSK", color = GreenDark.toArgb())
         val cat1 = CategoryOld("Science", color = Purple1Dark.toArgb(), icon = "atom")

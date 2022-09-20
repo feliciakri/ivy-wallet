@@ -17,6 +17,7 @@
 package com.ivy.buildsrc
 
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.kotlin.dsl.project
 
 
 object Project {
@@ -34,9 +35,7 @@ object Project {
 }
 
 object Versions {
-    //TODO: Copy comments URLs and add them here
-
-    //URL: https://kotlinlang.org/docs/releases.html#release-details
+    //https://kotlinlang.org/docs/releases.html#release-details
     //WARNING: Version is also updated from buildSrc
     const val kotlin = "1.7.0"
     const val coroutines = "1.6.3"
@@ -49,6 +48,9 @@ object Versions {
 
     //https://developer.android.com/jetpack/androidx/releases/compose-foundation
     const val composeFoundation = "1.2.0-rc03"
+
+    //https://developer.android.com/jetpack/compose/navigation
+    const val navigationCompose = "2.5.1"
 
     //https://developer.android.com/jetpack/androidx/releases/activity
     const val composeActivity = "1.5.0"
@@ -66,6 +68,7 @@ object Versions {
     //https://coil-kt.github.io/coil/compose/
     const val composeCoil = "2.1.0"
 
+    //https://arrow-kt.io/docs/quickstart/
     const val arrow: String = "1.0.1"
 
     //https://kotest.io/
@@ -78,8 +81,6 @@ object Versions {
 
     //https://mvnrepository.com/artifact/androidx.hilt/hilt-compiler?repo=google
     const val hiltX = "1.0.0"
-
-    const val androidXTestRunner = "1.4.0"
 
     //https://developer.android.com/jetpack/androidx/releases/appcompat
     const val appCompat = "1.4.2"
@@ -126,9 +127,29 @@ object Versions {
     //https://developer.android.com/jetpack/androidx/releases/datastore
     const val dataStore = "1.0.0"
 
-
     //https://developer.android.com/google/play/billing/getting-ready
     const val googleBilling = "4.0.0"
+
+    //WARNING: Version must be also updated in buildSrc
+    //https://www.mongodb.com/docs/realm/sdk/kotlin/install/android/
+    const val realm = "1.0.2"
+
+    //https://github.com/Kotlin/kotlinx.serialization#introduction-and-references
+    const val kotlinSerialization = "1.4.0"
+
+    // region http://robolectric.org/getting-started/
+    const val robolectric = "4.8"
+    const val robolectricJunit = "4.13.2"
+    //https://kotest.io/docs/extensions/robolectric.html
+    const val robolectricKotestExt = "0.5.0"
+    // endregion
+
+    // region AndroidX Test
+    //https://developer.android.com/jetpack/androidx/releases/test
+    const val testCore = "1.4.0"
+    const val testJunitExt = "1.1.3"
+    const val testRunner = "1.4.0"
+    // endregion
 }
 
 fun DependencyHandler.IvyFRP(
@@ -168,6 +189,10 @@ fun DependencyHandler.Compose(api: Boolean) {
     dependency("androidx.compose.material:material-icons-extended:$version", api = api)
     dependency("androidx.compose.runtime:runtime-livedata:$version", api = api)
     dependency("androidx.compose.ui:ui-tooling:$version", api = api)
+
+    dependency(
+        "androidx.navigation:navigation-compose:${Versions.navigationCompose}", api = api
+    )
 
     dependency(
         "androidx.activity:activity-compose:${Versions.composeActivity}", api = api
@@ -265,17 +290,16 @@ fun DependencyHandler.Hilt() {
     HiltTesting()
 }
 
-private fun DependencyHandler.HiltTesting() {
-    val api = true
-    androidTestDependency(
-        "com.google.dagger:hilt-android-testing:${Versions.hilt}", api = api
-    )
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
-
-    //TODO: Investigate why this is not test dependency
-    dependency(
-        "androidx.test:runner:${Versions.androidXTestRunner}", api = api
-    )
+fun DependencyHandler.HiltTesting(
+    dependency: DependencyHandler.(String) -> Unit = { dep ->
+        androidTestImplementation(dep)
+    },
+    kaptProcessor: DependencyHandler.(String) -> Unit = { dep ->
+        kaptAndroidTest(dep)
+    }
+) {
+    dependency("com.google.dagger:hilt-android-testing:${Versions.hilt}")
+    kaptProcessor("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
 }
 
 /**
@@ -310,12 +334,18 @@ fun DependencyHandler.Ktor(api: Boolean) {
     dependency("io.ktor:ktor-client-okhttp:${Versions.ktor}", api = api)
     dependency("io.ktor:ktor-client-logging:${Versions.ktor}", api = api)
     dependency("io.ktor:ktor-client-content-negotiation:${Versions.ktor}", api = api)
-    dependency("io.ktor:ktor-serialization-kotlinx-json:${Versions.ktor}", api = api)
+    dependency("io.ktor:ktor-serialization-gson:${Versions.ktor}", api = api)
+
 }
 
 fun DependencyHandler.Gson(api: Boolean) {
     //URL: https://github.com/google/gson
     dependency("com.google.code.gson:gson:${Versions.gson}", api = api)
+}
+
+fun DependencyHandler.SerializationJson() {
+    //https://github.com/Kotlin/kotlinx.serialization#introduction-and-references
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.kotlinSerialization}")
 }
 
 /**
@@ -336,8 +366,7 @@ fun DependencyHandler.Lifecycle(
 }
 
 fun DependencyHandler.AndroidX(api: Boolean) {
-    //https://developer.android.com/jetpack/androidx/releases/appcompat
-    dependency("androidx.appcompat:appcompat:${Versions.appCompat}", api = api)
+    AppCompat(api)
 
     //URL: https://developer.android.com/jetpack/androidx/releases/core
     dependency("androidx.core:core-ktx:${Versions.coreKtx}", api = api)
@@ -355,6 +384,11 @@ fun DependencyHandler.AndroidX(api: Boolean) {
     dependency("androidx.webkit:webkit:${Versions.webkit}", api = api)
 }
 
+fun DependencyHandler.AppCompat(api: Boolean) {
+    //https://developer.android.com/jetpack/androidx/releases/appcompat
+    dependency("androidx.appcompat:appcompat:${Versions.appCompat}", api = api)
+}
+
 fun DependencyHandler.Coroutines(
     api: Boolean
 ) {
@@ -365,6 +399,9 @@ fun DependencyHandler.Coroutines(
 
     //URL: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-test/
     androidTestDependency(
+        "org.jetbrains.kotlinx:kotlinx-coroutines-test:$version", api = api
+    )
+    testDependency(
         "org.jetbrains.kotlinx:kotlinx-coroutines-test:$version", api = api
     )
 }
@@ -403,6 +440,10 @@ fun DependencyHandler.FunctionalProgramming(api: Boolean) {
     Arrow(api)
 }
 
+fun DependencyHandler.RealmDb() {
+    implementation("io.realm.kotlin:library-base:${Versions.realm}")
+}
+
 /**
  * Functional Programming with Kotlin
  */
@@ -416,8 +457,33 @@ fun DependencyHandler.Arrow(
 //    dependency("io.arrow-kt:arrow-optics")
 }
 
-fun DependencyHandler.Testing() {
+fun DependencyHandler.Testing(commonTest: Boolean = true) {
     Kotest()
+    // Robolectric doesn't integrate well with JUnit5 and Kotest
+//    Robolectric(api = false)
+
+    if (commonTest) {
+        androidTestImplementation(project(":common-android-test"))
+    }
+}
+
+fun DependencyHandler.AndroidXTest(
+    dependency: DependencyHandler.(String) -> Unit = { dep ->
+        androidTestImplementation(dep)
+    }
+) {
+    // To use the androidx.test.core APIs
+    dependency("androidx.test:core:${Versions.testCore}")
+    // Kotlin extensions for androidx.test.core
+    dependency("androidx.test:core-ktx:${Versions.testCore}")
+
+    // To use the JUnit Extension APIs
+    dependency("androidx.test.ext:junit:${Versions.testJunitExt}")
+    // Kotlin extensions for androidx.test.ext.junit
+    dependency("androidx.test.ext:junit-ktx:${Versions.testJunitExt}")
+
+    // To use the androidx.test.runner APIs
+    dependency("androidx.test:runner:${Versions.testRunner}")
 }
 
 /**
@@ -428,7 +494,10 @@ fun DependencyHandler.Kotest() {
     //junit5 is required!
     testDependency("org.junit.jupiter:junit-jupiter:${Versions.junitJupiter}", api = api)
     testDependency("io.kotest:kotest-runner-junit5:${Versions.kotest}", api = api)
+
     testDependency("io.kotest:kotest-assertions-core:${Versions.kotest}", api = api)
+    androidTestDependency("io.kotest:kotest-assertions-core:${Versions.kotest}", api = api)
+
     testDependency("io.kotest:kotest-property:${Versions.kotest}", api = api)
     testDependency("io.kotest:kotest-framework-api-jvm:${Versions.kotest}", api = api)
     testImplementation("io.kotest:kotest-framework-engine-jvm:${Versions.kotest}")
@@ -439,5 +508,14 @@ fun DependencyHandler.Kotest() {
 
     testDependency(
         "io.kotest.extensions:kotest-property-arrow:${Versions.arrow}", api = api
+    )
+}
+
+fun DependencyHandler.Robolectric(api: Boolean) {
+    testDependency("org.robolectric:robolectric:${Versions.robolectric}", api = api)
+    testDependency("junit:junit:${Versions.robolectricJunit}", api = api)
+    testDependency(
+        "io.kotest.extensions:kotest-extensions-robolectric:${Versions.robolectricKotestExt}",
+        api = api,
     )
 }

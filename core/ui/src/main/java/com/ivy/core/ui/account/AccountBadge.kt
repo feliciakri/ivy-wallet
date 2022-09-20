@@ -4,15 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
-import com.ivy.core.functions.account.dummyAcc
+import com.ivy.core.domain.pure.dummy.dummyAcc
 import com.ivy.core.ui.R
 import com.ivy.core.ui.component.BadgeComponent
-import com.ivy.core.ui.temp.ComponentPreview
 import com.ivy.data.account.Account
 import com.ivy.data.icon.IvyIcon
 import com.ivy.design.l0_system.Black
 import com.ivy.design.l0_system.Green
 import com.ivy.design.l0_system.toComposeColor
+import com.ivy.design.util.ComponentPreview
 
 @Composable
 fun Account.Badge(

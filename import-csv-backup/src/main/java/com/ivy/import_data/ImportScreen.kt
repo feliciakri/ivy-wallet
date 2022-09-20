@@ -8,6 +8,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ivy.design.util.IvyPreview
 import com.ivy.frp.view.navigation.onScreenStart
 import com.ivy.import_data.flow.ImportFrom
 import com.ivy.import_data.flow.ImportProcessing
@@ -15,8 +16,8 @@ import com.ivy.import_data.flow.ImportResultUI
 import com.ivy.import_data.flow.instructions.ImportInstructions
 import com.ivy.onboarding.viewmodel.OnboardingViewModel
 import com.ivy.screens.Import
+import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportApp
 import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportResult
-import com.ivy.wallet.domain.deprecated.logic.csv.model.ImportType
 
 @OptIn(ExperimentalStdlibApi::class)
 @ExperimentalFoundationApi
@@ -39,7 +40,7 @@ fun BoxWithConstraintsScope.ImportCSVScreen(screen: Import) {
     UI(
         screen = screen,
         importStep = importStep,
-        importType = importType,
+        importApp = importType,
         importProgressPercent = importProgressPercent,
         importResult = importResult,
 
@@ -66,11 +67,11 @@ private fun BoxWithConstraintsScope.UI(
     screen: Import,
 
     importStep: ImportStep,
-    importType: ImportType?,
+    importApp: ImportApp?,
     importProgressPercent: Int,
     importResult: ImportResult?,
 
-    onChooseImportType: (ImportType) -> Unit = {},
+    onChooseImportType: (ImportApp) -> Unit = {},
     onUploadCSVFile: () -> Unit = {},
     onSkip: () -> Unit = {},
     onFinish: () -> Unit = {},
@@ -86,7 +87,7 @@ private fun BoxWithConstraintsScope.UI(
         ImportStep.INSTRUCTIONS -> {
             ImportInstructions(
                 hasSkip = screen.launchedFromOnboarding,
-                importType = importType!!,
+                importApp = importApp!!,
                 onSkip = onSkip,
                 onUploadClick = onUploadCSVFile
             )
@@ -110,11 +111,11 @@ private fun BoxWithConstraintsScope.UI(
 @Preview
 @Composable
 private fun Preview() {
-    com.ivy.core.ui.temp.Preview {
+    IvyPreview {
         UI(
             screen = Import(launchedFromOnboarding = true),
             importStep = ImportStep.IMPORT_FROM,
-            importType = null,
+            importApp = null,
             importProgressPercent = 0,
             importResult = null
         )
