@@ -3,6 +3,7 @@ package com.ivy.design.l1_buildingBlocks
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -14,13 +15,13 @@ import com.ivy.design.util.ComponentPreview
 import com.ivy.design.util.thenWhen
 
 @Composable
-fun DividerH(
+fun DividerHor(
     size: DividerSize = DividerSize.FillMax(
         padding = 16.dp
     ),
     width: Dp = 1.dp,
-    color: Color = UI.colors.gray,
-    shape: Shape = UI.shapes.rFull
+    color: Color = UI.colors.neutral,
+    shape: Shape = UI.shapes.fullyRounded
 ) {
     Spacer(
         modifier = Modifier
@@ -41,13 +42,13 @@ fun DividerH(
 }
 
 @Composable
-fun DividerV(
+fun DividerVer(
     size: DividerSize = DividerSize.FillMax(
         padding = 16.dp
     ),
     width: Dp = 1.dp,
-    color: Color = UI.colors.gray,
-    shape: Shape = UI.shapes.rFull
+    color: Color = UI.colors.neutral,
+    shape: Shape = UI.shapes.fullyRounded
 ) {
     Spacer(
         modifier = Modifier
@@ -71,13 +72,13 @@ fun DividerV(
 fun RowScope.DividerW(
     weight: Float = 1f,
     height: Dp = 1.dp,
-    color: Color = UI.colors.gray,
-    shape: Shape = UI.shapes.rFull
+    color: Color = UI.colors.neutral,
+    shape: Shape = UI.shapes.fullyRounded
 ) {
     Divider(
         modifier = Modifier
             .weight(weight)
-            .height(1.dp),
+            .height(height),
         color = color,
         shape = shape
     )
@@ -87,8 +88,8 @@ fun RowScope.DividerW(
 fun ColumnScope.DividerW(
     weight: Float = 1f,
     width: Dp = 1.dp,
-    color: Color = UI.colors.gray,
-    shape: Shape = UI.shapes.rFull
+    color: Color = UI.colors.neutral,
+    shape: Shape = UI.shapes.fullyRounded
 ) {
     Divider(
         modifier = Modifier
@@ -102,8 +103,8 @@ fun ColumnScope.DividerW(
 @Composable
 fun Divider(
     modifier: Modifier = Modifier,
-    color: Color = UI.colors.gray,
-    shape: Shape = UI.shapes.rFull
+    color: Color = UI.colors.neutral,
+    shape: Shape = UI.shapes.fullyRounded
 ) {
     Spacer(
         modifier = modifier
@@ -111,17 +112,22 @@ fun Divider(
     )
 }
 
+@Immutable
 sealed class DividerSize {
+    @Immutable
     data class Fixed(val size: Dp) : DividerSize()
 
+    @Immutable
     data class FillMax(val padding: Dp) : DividerSize()
 }
 
+
+// region Previews
 @Preview
 @Composable
 private fun PreviewHorizontalDivider_fillMax() {
     ComponentPreview {
-        DividerH(
+        DividerHor(
             size = DividerSize.FillMax(
                 padding = 16.dp
             )
@@ -133,7 +139,7 @@ private fun PreviewHorizontalDivider_fillMax() {
 @Composable
 private fun PreviewHorizontalDivider_fixed() {
     ComponentPreview {
-        DividerH(
+        DividerHor(
             size = DividerSize.Fixed(
                 size = 32.dp
             )
@@ -145,7 +151,7 @@ private fun PreviewHorizontalDivider_fixed() {
 @Composable
 private fun PreviewVerticalDivider_fillMax() {
     ComponentPreview {
-        DividerV(
+        DividerVer(
             size = DividerSize.FillMax(
                 padding = 16.dp
             )
@@ -157,7 +163,7 @@ private fun PreviewVerticalDivider_fillMax() {
 @Composable
 private fun PreviewVerticalDivider_fixed() {
     ComponentPreview {
-        DividerV(
+        DividerVer(
             size = DividerSize.Fixed(
                 size = 16.dp
             )
@@ -171,30 +177,25 @@ private fun PreviewDivider() {
     ComponentPreview {
         Row {
             SpacerHor(16.dp)
-
             Divider(
                 modifier = Modifier
                     .weight(1f)
                     .height(2.dp)
             )
-
             SpacerHor(16.dp)
-
             Divider(
                 modifier = Modifier
                     .weight(1f)
                     .height(2.dp)
             )
-
             SpacerHor(16.dp)
-
             Divider(
                 modifier = Modifier
                     .weight(1f)
                     .height(2.dp)
             )
-
             SpacerHor(16.dp)
         }
     }
 }
+// endregion

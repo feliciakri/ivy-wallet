@@ -24,10 +24,7 @@ fun Shape(
     Spacer(
         modifier = modifier
             .size(size)
-            .background(
-                color = color,
-                shape = shape
-            )
+            .background(color = color, shape = shape)
     )
 }
 
@@ -50,6 +47,13 @@ fun ShapeOutlined(
     )
 }
 
+@Composable
+fun Shape(modifier: Modifier = Modifier) {
+    Spacer(modifier)
+}
+
+
+// region Previews
 @Preview
 @Composable
 private fun Preview_Circle() {
@@ -68,9 +72,10 @@ private fun PreviewOutlined() {
     ComponentPreview {
         ShapeOutlined(
             size = 64.dp,
-            shape = UI.shapes.r3,
+            shape = UI.shapes.rounded,
             borderWidth = 2.dp,
-            borderColor = UI.colors.gray
+            borderColor = UI.colors.neutral
         )
     }
 }
+// endregion

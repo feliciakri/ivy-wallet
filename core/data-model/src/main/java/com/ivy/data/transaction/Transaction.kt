@@ -12,7 +12,7 @@ data class Transaction(
     val id: UUID,
 
     val account: Account,
-    val type: TrnType,
+    val type: TransactionType,
     val value: Value,
     val category: Category?,
     val time: TrnTime,
@@ -25,6 +25,6 @@ data class Transaction(
     val sync: SyncState,
 
     val tags: List<Tag>,
-    val metadata: TrnMetadata,
     val attachments: List<Attachment>,
+    val metadata: TrnMetadata,
 )

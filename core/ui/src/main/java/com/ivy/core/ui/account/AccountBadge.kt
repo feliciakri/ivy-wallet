@@ -1,27 +1,29 @@
 package com.ivy.core.ui.account
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
-import com.ivy.core.domain.pure.dummy.dummyAcc
 import com.ivy.core.ui.R
 import com.ivy.core.ui.component.BadgeComponent
-import com.ivy.data.account.Account
-import com.ivy.data.icon.IvyIcon
-import com.ivy.design.l0_system.Black
-import com.ivy.design.l0_system.Green
-import com.ivy.design.l0_system.toComposeColor
+import com.ivy.core.ui.data.account.AccountUi
+import com.ivy.core.ui.data.account.dummyAccountUi
+import com.ivy.core.ui.data.icon.dummyIconSized
+import com.ivy.design.l0_system.color.Black
+import com.ivy.design.l0_system.color.Green
 import com.ivy.design.util.ComponentPreview
 
 @Composable
-fun Account.Badge(
-    background: Color = color.toComposeColor(),
+fun AccountBadge(
+    account: AccountUi,
+    modifier: Modifier = Modifier,
+    background: Color = account.color,
     onClick: (() -> Unit)? = null
 ) {
     BadgeComponent(
-        icon = icon,
-        text = name,
+        modifier = modifier,
+        icon = account.icon,
+        text = account.name,
         background = background,
         onClick = onClick,
     )
@@ -31,15 +33,11 @@ fun Account.Badge(
 @Composable
 private fun Preview_Black() {
     ComponentPreview {
-        dummyAcc(
-            name = "Cash",
-            icon = IvyIcon.Sized(
-                iconS = R.drawable.ic_custom_account_s,
-                iconM = 0,
-                iconL = 0,
-                iconId = null
-            )
-        ).Badge(
+        AccountBadge(
+            account = dummyAccountUi(
+                name = "Cash",
+                icon = dummyIconSized(R.drawable.ic_custom_account_s)
+            ),
             background = Black
         )
     }
@@ -49,15 +47,12 @@ private fun Preview_Black() {
 @Composable
 private fun Preview_Color() {
     ComponentPreview {
-        dummyAcc(
-            name = "Cash",
-            icon = IvyIcon.Sized(
-                iconS = R.drawable.ic_custom_account_s,
-                iconM = 0,
-                iconL = 0,
-                iconId = null
-            ),
-            color = Green.toArgb(),
-        ).Badge()
+        AccountBadge(
+            account = dummyAccountUi(
+                name = "Cash",
+                icon = dummyIconSized(R.drawable.ic_custom_account_s),
+                color = Green,
+            )
+        )
     }
 }

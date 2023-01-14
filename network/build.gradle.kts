@@ -10,7 +10,6 @@ plugins {
 
 dependencies {
     Hilt()
-    implementation(project(":common"))
-    api(project(":temp-network"))
+    implementation(project(":common:main"))
     Ktor(api = true)
 }

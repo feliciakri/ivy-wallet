@@ -1,6 +1,6 @@
 package com.ivy.core.domain.pure.account
 
-import com.ivy.common.timeNowLocal
+import com.ivy.common.time.provider.TimeProvider
 import com.ivy.core.domain.pure.isFiat
 import com.ivy.core.domain.pure.util.isInsignificant
 import com.ivy.data.SyncState
@@ -11,10 +11,11 @@ import java.util.*
 import kotlin.math.abs
 
 fun adjustBalanceTrn(
+    timeProvider: TimeProvider,
     account: Account,
     currentBalance: Double,
     desiredBalance: Double,
-    hiddenTrn: Boolean
+    hiddenTrn: Boolean,
 ): Transaction? {
     // if the acc has 50$ and we want to adjust it to 40$
     // => we need to create an Expense for $10
@@ -30,11 +31,11 @@ fun adjustBalanceTrn(
         id = UUID.randomUUID(),
         account = account,
         category = null, // unspecified
-        type = if (amountMissing > 0) TrnType.Expense else TrnType.Income,
+        type = if (amountMissing > 0) TransactionType.Expense else TransactionType.Income,
         value = Value(amount = abs(amountMissing), currency = account.currency),
         title = "Adjust balance",
         description = null,
-        time = TrnTime.Actual(timeNowLocal()),
+        time = TrnTime.Actual(timeProvider.timeNow()),
         state = if (hiddenTrn) TrnState.Hidden else TrnState.Default,
         purpose = TrnPurpose.AdjustBalance,
 

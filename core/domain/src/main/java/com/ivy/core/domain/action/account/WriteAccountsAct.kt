@@ -1,14 +1,15 @@
 package com.ivy.core.domain.action.account
 
+import com.ivy.core.domain.action.Action
 import com.ivy.core.domain.action.data.Modify
 import com.ivy.core.domain.action.transaction.WriteTrnsAct
+import com.ivy.core.domain.pure.account.validateAccount
 import com.ivy.core.domain.pure.mapping.entity.mapToEntity
 import com.ivy.core.persistence.dao.account.AccountDao
 import com.ivy.core.persistence.query.TrnQueryExecutor
 import com.ivy.core.persistence.query.TrnWhere
 import com.ivy.data.SyncState
 import com.ivy.data.account.Account
-import com.ivy.frp.action.Action
 import javax.inject.Inject
 
 /**
@@ -41,9 +42,15 @@ class WriteAccountsAct @Inject constructor(
     }
 
     private suspend fun save(accounts: List<Account>) {
-        val entities = accounts.map {
-            mapToEntity(it).copy(sync = SyncState.Syncing)
-        }
+        val entities = accounts.filter(::validateAccount)
+            .map {
+                it.copy(
+                    name = it.name.trim(),
+                )
+            }
+            .map {
+                mapToEntity(it).copy(sync = SyncState.Syncing)
+            }
         accountDao.save(entities)
     }
 }

@@ -1,11 +1,11 @@
-[![Latest Release](https://img.shields.io/github/v/release/iliyangermanov/ivy-wallet)](https://github.com/ILIYANGERMANOV/ivy-wallet/releases)
-[![Build](https://github.com/ILIYANGERMANOV/ivy-wallet/actions/workflows/build.yml/badge.svg)](https://github.com/ILIYANGERMANOV/ivy-wallet/actions/workflows/internal_release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Ivy-Apps/ivy-wallet)](https://github.com/Ivy-Apps/ivy-wallet/releases)
+[![Build](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/build.yml/badge.svg)](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/build.yml)
 [![Lint](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/lint.yml/badge.svg)](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/lint.yml)
 [![Unit Test](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/unit_test.yml/badge.svg)](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/unit_test.yml)
 [![Integration Test](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/integration_test.yml/badge.svg)](https://github.com/Ivy-Apps/ivy-wallet/actions/workflows/integration_test.yml)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![PRs welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ILIYANGERMANOV/ivy-wallet/blob/main/CONTRIBUTING.md)
+[![PRs welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Ivy-Apps/ivy-wallet/blob/main/CONTRIBUTING.md)
 [![GitHub Repo stars](https://img.shields.io/github/stars/Ivy-Apps/ivy-wallet?style=social)](https://github.com/Ivy-Apps/ivy-wallet/stargazers)
 
 # [Ivy Wallet: money manager](https://play.google.com/store/apps/details?id=com.ivy.wallet)
@@ -21,7 +21,7 @@ Imagine Ivy Wallet as a manual expense tracker that will replace the good old sp
 
 Track your expenses, fast and on-the-go! ⚡ Discover powerful insights about your spending.
 
-**Do you know? Ask yoursef.**
+**Do you know? Ask yourself.**
 
 1) How much money do I have right now in all accounts combined?
 
@@ -65,7 +65,7 @@ in **[docs/resources 📚](docs/resources/)**.
 
 > Have ideas/proposals how we can make our project better? Please, get in touch! 🚀
 
-[![PRs welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ILIYANGERMANOV/ivy-wallet/blob/main/CONTRIBUTING.md)
+[![PRs welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Ivy-Apps/ivy-wallet/blob/main/CONTRIBUTING.md)
 
 ## Tech Stack
 
@@ -100,13 +100,14 @@ in **[docs/resources 📚](docs/resources/)**.
 
 ## Project Requirements
 - Java 11+
-- Android Studio Dolphin+ (for easy install use [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/))
+- **Android Studio Electric Eel+** (for easy install
+  use [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/))
 
 ## How to build?
 1. Clone the repository
 2. Open with Android Studio
 3. Everything should sync and build automatically
-- _If any build problems occurr, please [open a new issue](https://github.com/Ivy-Apps/ivy-wallet/issues/new?assignees=&labels=dev&template=dev-contributor-request.yml) including the logs._
+- _If any build problems occur, please [open a new issue](https://github.com/Ivy-Apps/ivy-wallet/issues/new?assignees=&labels=dev&template=dev-contributor-request.yml) including the logs._
 
 ## Ideology :earth_africa:
 We believe that people _(not corporations)_ can create innovative, open-source,
@@ -134,7 +135,7 @@ tell us how we can create a better environment for developers & creators to work
 ### [Ivy Telegram News](https://t.me/ivywallet)
 
 
-## Contributors [(see graph)](https://github.com/ILIYANGERMANOV/ivy-wallet/graphs/contributors)
+## Contributors [(see graph)](https://github.com/Ivy-Apps/ivy-wallet/graphs/contributors)
 
 ### Why to contribute?
 - It's a win-win!
@@ -150,7 +151,7 @@ tell us how we can create a better environment for developers & creators to work
 ### How to contribute?
 
 Follow our
-compact **[Contributors Guide](https://github.com/ILIYANGERMANOV/ivy-wallet/blob/main/CONTRIBUTING.md)**
+compact **[Contributors Guide](https://github.com/Ivy-Apps/ivy-wallet/blob/main/CONTRIBUTING.md)**
 to begin.
 
 **TL;DR:**
@@ -165,10 +166,10 @@ to begin.
 I hope a lot more profile pictures are going to show up here, soon!
 
 ### Contributors Wall:
-<a href="https://github.com/ILIYANGERMANOV/ivy-wallet/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ILIYANGERMANOV/ivy-wallet" />
+<a href="https://github.com/Ivy-Apps/ivy-wallet/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Ivy-Apps/ivy-wallet" />
 </a>
 <br>
 <br>
 
-_Note: It may take up to 24h for the [contrib.rocks](https://contrib.rocks/preview?repo=ILIYANGERMANOV%2Fivy-wallet) plugin to update because it's refreshed once a day._ 
+_Note: It may take up to 24h for the [contrib.rocks](https://contrib.rocks/preview?repo=Ivy-Apps%2Fivy-wallet) plugin to update because it's refreshed once a day._ 

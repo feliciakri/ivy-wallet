@@ -2,26 +2,26 @@ package com.ivy.core.ui.category
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
-import com.ivy.core.domain.pure.dummy.dummyCategory
 import com.ivy.core.ui.R
 import com.ivy.core.ui.component.BadgeComponent
-import com.ivy.data.category.Category
-import com.ivy.data.icon.IvyIcon
-import com.ivy.design.l0_system.Black
-import com.ivy.design.l0_system.Purple
-import com.ivy.design.l0_system.toComposeColor
+import com.ivy.core.ui.data.CategoryUi
+import com.ivy.core.ui.data.dummyCategoryUi
+import com.ivy.core.ui.data.icon.dummyIconSized
+import com.ivy.core.ui.data.icon.dummyIconUnknown
+import com.ivy.design.l0_system.color.Black
+import com.ivy.design.l0_system.color.Purple
 import com.ivy.design.util.ComponentPreview
 
 @Composable
-fun Category.Badge(
-    background: Color = color.toComposeColor(),
+fun CategoryBadge(
+    category: CategoryUi,
+    background: Color = category.color,
     onClick: (() -> Unit)? = null
 ) {
     BadgeComponent(
-        icon = icon,
-        text = name,
+        icon = category.icon,
+        text = category.name,
         background = background,
         onClick = onClick,
     )
@@ -31,13 +31,11 @@ fun Category.Badge(
 @Composable
 private fun Preview_Black() {
     ComponentPreview {
-        dummyCategory(
-            name = "Cash",
-            icon = IvyIcon.Unknown(
-                icon = R.drawable.ic_vue_building_house,
-                iconId = null
-            )
-        ).Badge(
+        CategoryBadge(
+            category = dummyCategoryUi(
+                name = "Cash",
+                icon = dummyIconUnknown(R.drawable.ic_vue_building_house)
+            ),
             background = Black
         )
     }
@@ -47,15 +45,13 @@ private fun Preview_Black() {
 @Composable
 private fun Preview_Color() {
     ComponentPreview {
-        dummyCategory(
-            name = "Cash",
-            icon = IvyIcon.Sized(
-                iconS = R.drawable.ic_custom_category_s,
-                iconM = 0,
-                iconL = 0,
-                iconId = null
-            ),
-            color = Purple.toArgb(),
-        ).Badge()
+
+        CategoryBadge(
+            category = dummyCategoryUi(
+                name = "Cash",
+                icon = dummyIconSized(R.drawable.ic_custom_category_s),
+                color = Purple,
+            )
+        )
     }
 }

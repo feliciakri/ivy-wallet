@@ -4,7 +4,7 @@
 
 A short guide _(that'll evolve with time)_ with one and only goal - to **make us better developers.**
 
-[![PRs are welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ILIYANGERMANOV/ivy-wallet/blob/main/CONTRIBUTING.md)
+[![PRs are welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Ivy-Apps/ivy-wallet/blob/main/CONTRIBUTING.md)
 [![Feedback is welcome!](https://img.shields.io/badge/feedback-welcome-brightgreen)](https://t.me/+ETavgioAvWg4NThk)
 [![Proposals are highly appreciated!](https://img.shields.io/badge/proposals-highly%20appreciated-brightgreen)](https://t.me/+ETavgioAvWg4NThk)
 
@@ -390,11 +390,11 @@ The `pure` layer must consist of only pure functions without side-effects. If th
 
     ```Kotlin
     //It's defined in all cases but with each call returns a different output
-    @Total
+    
     fun timeNowUTC(): LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
 
     //Produces logging side-effect which can be seen in Logcat
-    @Total
+    
     fun logMessage(
         msg: String
     ) {

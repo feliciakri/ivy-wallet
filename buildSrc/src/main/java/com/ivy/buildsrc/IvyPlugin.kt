@@ -37,7 +37,7 @@ abstract class IvyPlugin : Plugin<Project> {
 
     private fun androidTest(project: Project) {
         project.androidLibrary().defaultConfig {
-            testInstrumentationRunner = "com.ivy.common.test.IvyTestRunner"
+            testInstrumentationRunner = "com.ivy.common.androidtest.IvyTestRunner"
         }
     }
 
@@ -58,7 +58,7 @@ abstract class IvyPlugin : Plugin<Project> {
             plugin("dagger.hilt.android.plugin")
             plugin("io.kotest")
 
-            //TODO: Enable when we migrate to kotlinx serialization
+            //TODO: Enable if we migrate to kotlinx serialization
 //            plugin("kotlinx-serialization")
         }
     }

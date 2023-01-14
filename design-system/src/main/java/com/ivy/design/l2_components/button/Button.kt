@@ -1,6 +1,5 @@
 package com.ivy.design.l2_components.button
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
@@ -11,10 +10,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ivy.design.l0_system.UI
-import com.ivy.design.l0_system.White
+import com.ivy.design.l0_system.color.White
 import com.ivy.design.l0_system.colorAs
 import com.ivy.design.l0_system.style
 import com.ivy.design.l1_buildingBlocks.data.*
+import com.ivy.design.l1_buildingBlocks.hapticClickable
 import com.ivy.design.util.ComponentPreview
 import com.ivy.design.util.padding
 
@@ -25,7 +25,7 @@ fun Btn.Text(
     modifier: Modifier = Modifier,
     background: Background = solid(
         color = UI.colors.primary,
-        shape = UI.shapes.rFull,
+        shape = UI.shapes.fullyRounded,
         padding = padding(
             horizontal = 24.dp,
             vertical = 12.dp
@@ -35,12 +35,13 @@ fun Btn.Text(
         color = White,
         textAlign = TextAlign.Center
     ),
+    hapticFeedback: Boolean = false,
     onClick: () -> Unit
 ) {
     Text(
         modifier = modifier
             .clipBackground(background)
-            .clickable(onClick = onClick)
+            .hapticClickable(hapticFeedbackEnabled = hapticFeedback, onClick = onClick)
             .applyBackground(background),
         text = text,
         style = textStyle
@@ -56,7 +57,7 @@ private fun Preview_Solid() {
             text = "Okay",
             background = solid(
                 color = UI.colors.primary,
-                shape = UI.shapes.rFull,
+                shape = UI.shapes.fullyRounded,
                 padding = padding(
                     horizontal = 24.dp,
                     vertical = 12.dp
@@ -76,15 +77,15 @@ private fun Preview_Outlined() {
         Btn.Text(
             text = "Continue",
             background = outlined(
-                color = UI.colors.pureInverse,
+                color = UI.colorsInverted.pure,
                 width = 1.dp,
-                shape = UI.shapes.rFull,
+                shape = UI.shapes.fullyRounded,
                 padding = padding(
                     horizontal = 24.dp,
                     vertical = 12.dp
                 )
             ),
-            textStyle = UI.typo.b1.colorAs(UI.colors.pureInverse)
+            textStyle = UI.typo.b1.colorAs(UI.colorsInverted.pure)
         ) {
 
         }

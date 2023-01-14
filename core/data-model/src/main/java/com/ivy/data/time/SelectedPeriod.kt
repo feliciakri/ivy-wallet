@@ -1,22 +1,23 @@
 package com.ivy.data.time
 
-sealed class SelectedPeriod {
+sealed interface SelectedPeriod {
     data class Monthly(
         val month: Month,
-        val period: Period.FromTo
-    ) : SelectedPeriod()
+        val startDayOfMonth: Int,
+        val range: TimeRange
+    ) : SelectedPeriod
 
     data class InTheLast(
         val n: Int,
         val unit: TimeUnit,
-        val period: Period.FromTo
-    ) : SelectedPeriod()
+        val range: TimeRange
+    ) : SelectedPeriod
 
     data class AllTime(
-        val period: Period.FromTo
-    ) : SelectedPeriod()
+        val range: TimeRange
+    ) : SelectedPeriod
 
     data class CustomRange(
-        val period: Period.FromTo
-    ) : SelectedPeriod()
+        val range: TimeRange
+    ) : SelectedPeriod
 }

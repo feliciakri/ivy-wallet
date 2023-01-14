@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.ivy.design.R
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
-import com.ivy.design.l1_buildingBlocks.IvyIcon
+import com.ivy.design.l1_buildingBlocks.IconRes
 import com.ivy.design.l1_buildingBlocks.SpacerHor
 import com.ivy.design.util.ComponentPreview
 import com.ivy.design.util.clickableNoIndication
@@ -30,7 +30,7 @@ fun Checkbox(
     contentDescription: String = "checkbox",
     onCheckedChange: (checked: Boolean) -> Unit
 ) {
-    IvyIcon(
+    IconRes(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
@@ -40,7 +40,7 @@ fun Checkbox(
             .padding(all = 12.dp),
         icon = if (checked) R.drawable.ic_checkbox_checked else R.drawable.ic_checkbox_unchecked,
         contentDescription = contentDescription,
-        tint = if (checked) Color.Unspecified else UI.colors.gray
+        tint = if (checked) Color.Unspecified else UI.colors.neutral
     )
 }
 
@@ -50,7 +50,7 @@ fun CheckboxWithText(
     checked: Boolean,
     text: String,
     textStyle: TextStyle = UI.typo.b2.style(
-        color = UI.colors.pureInverse,
+        color = UI.colorsInverted.pure,
         fontWeight = FontWeight.SemiBold
     ),
     onCheckedChange: (checked: Boolean) -> Unit

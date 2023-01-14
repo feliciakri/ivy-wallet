@@ -1,5 +1,5 @@
-import com.ivy.buildsrc.EventBus
 import com.ivy.buildsrc.Hilt
+import com.ivy.buildsrc.Testing
 
 apply<com.ivy.buildsrc.IvyComposePlugin>()
 
@@ -9,15 +9,12 @@ plugins {
 
 dependencies {
     Hilt()
-    implementation(project(":common"))
+    implementation(project(":common:main"))
     implementation(project(":design-system"))
     implementation(project(":core:data-model"))
-    implementation(project(":temp-domain"))
-    implementation(project(":screens"))
-    implementation(project(":app-base"))
     implementation(project(":core:ui"))
-    implementation(project(":temp-persistence"))
-    implementation(project(":ui-components-old"))
-
-    EventBus()
+    implementation(project(":core:domain"))
+    implementation(project(":navigation"))
+    implementation(project(":main:base"))
+    Testing()
 }

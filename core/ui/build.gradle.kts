@@ -10,11 +10,11 @@ plugins {
 
 dependencies {
     Hilt()
-    implementation(project(":common"))
+    implementation(project(":common:main"))
     implementation(project(":design-system"))
     implementation(project(":core:domain"))
-    implementation(project(":screens"))
-    implementation(project(":app-base")) // TODO: temp dependency, remove later
+    implementation(project(":navigation"))
+    implementation(project(":math"))
 
     Testing()
 }

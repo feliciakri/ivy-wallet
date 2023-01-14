@@ -1,6 +1,7 @@
 package com.ivy.core.ui.transaction
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,67 +17,31 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ivy.base.R
-import com.ivy.core.domain.pure.dummy.dummyValue
-import com.ivy.core.functions.transaction.dummyOverdueSection
-import com.ivy.core.functions.transaction.dummyUpcomingSection
-import com.ivy.core.ui.value.formatAmount
-import com.ivy.data.Value
-import com.ivy.data.transaction.OverdueSection
-import com.ivy.data.transaction.UpcomingSection
-import com.ivy.design.l0_system.*
-import com.ivy.design.l1_buildingBlocks.IvyIcon
+import com.ivy.core.domain.pure.format.ValueUi
+import com.ivy.core.domain.pure.format.dummyValueUi
+import com.ivy.core.ui.data.transaction.DueSectionUi
+import com.ivy.core.ui.data.transaction.DueSectionUiType
+import com.ivy.core.ui.data.transaction.dummyDueSectionUi
+import com.ivy.design.l0_system.UI
+import com.ivy.design.l0_system.style
+import com.ivy.design.l1_buildingBlocks.B1
+import com.ivy.design.l1_buildingBlocks.IconRes
 import com.ivy.design.l1_buildingBlocks.SpacerHor
 import com.ivy.design.l1_buildingBlocks.SpacerVer
 import com.ivy.design.l3_ivyComponents.IvyDividerDot
 import com.ivy.design.util.ComponentPreview
-import com.ivy.design.util.clickableNoIndication
 import com.ivy.design.util.springBounce
+import com.ivy.resources.R
 
 @Composable
-fun UpcomingSection.SectionDivider(
-    expanded: Boolean,
-    setExpanded: (Boolean) -> Unit
-) {
-    DueSectionDivider(
-        expanded = expanded,
-        setExpanded = setExpanded,
-        title = stringResource(R.string.upcoming),
-        titleColor = Orange,
-        income = income,
-        expense = expense,
-    )
-}
-
-@Composable
-fun OverdueSection.SectionDivider(
-    expanded: Boolean,
-    setExpanded: (Boolean) -> Unit
-) {
-    DueSectionDivider(
-        expanded = expanded,
-        setExpanded = setExpanded,
-        title = stringResource(R.string.overdue),
-        titleColor = Red,
-        income = income,
-        expense = expense,
-    )
-}
-
-@Composable
-private fun DueSectionDivider(
+fun DueSectionUi.SectionDivider(
     expanded: Boolean,
     setExpanded: (Boolean) -> Unit,
-
-    title: String,
-    titleColor: Color,
-    income: Value,
-    expense: Value,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickableNoIndication {
+            .clickable {
                 setExpanded(!expanded)
             },
         verticalAlignment = Alignment.CenterVertically
@@ -85,7 +50,18 @@ private fun DueSectionDivider(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            Title(title = title, titleColor = titleColor)
+            Title(
+                title = stringResource(
+                    when (dueType) {
+                        DueSectionUiType.Upcoming -> R.string.upcoming
+                        DueSectionUiType.Overdue -> R.string.overdue
+                    }
+                ),
+                color = when (dueType) {
+                    DueSectionUiType.Upcoming -> UI.colors.orange
+                    DueSectionUiType.Overdue -> UI.colors.red
+                }
+            )
             SpacerVer(height = 4.dp)
             DueIncomeExpense(income = income, expense = expense)
         }
@@ -98,16 +74,15 @@ private fun DueSectionDivider(
 @Composable
 private fun Title(
     title: String,
-    titleColor: Color,
+    color: Color,
 ) {
-    Text(
-        modifier = Modifier
-            .testTag("upcoming_title"),
+    B1(
         text = title,
-        style = UI.typo.b1.style(
-            fontWeight = FontWeight.ExtraBold,
-            color = titleColor
-        )
+        modifier = Modifier
+            // TODO: Rename this to "due_title"
+            .testTag("upcoming_title"),
+        fontWeight = FontWeight.ExtraBold,
+        color = color,
     )
 }
 
@@ -116,60 +91,54 @@ private fun ExpandCollapseIcon(
     expanded: Boolean,
 ) {
     val expandIconRotation by animateFloatAsState(
-        targetValue = if (expanded) 0f else -180f,
+        targetValue = if (expanded) 180f else 0f,
         animationSpec = springBounce()
     )
-    // TODO: Optimize by setting default to arrow up (collapsed state)
-    IvyIcon(
-        modifier = Modifier.rotate(expandIconRotation),
-        icon = R.drawable.ic_expandarrow
+    IconRes(
+        icon = R.drawable.ic_expand_less,
+        modifier = Modifier.rotate(expandIconRotation)
     )
 }
 
 @Composable
 private fun DueIncomeExpense(
-    income: Value,
-    expense: Value,
+    income: ValueUi?,
+    expense: ValueUi?,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (expense.amount > 0) {
-            expense.AmountCurrencyLabel(
-                testTag = "upcoming_expense",
-                label = stringResource(R.string.expenses_lowercase),
-                amountColor = UI.colors.pureInverse,
-            )
-        }
+        expense?.AmountCurrencyLabel(
+            testTag = "upcoming_expense",
+            label = stringResource(R.string.expenses_lowercase),
+            amountColor = UI.colorsInverted.pure,
+        )
 
-        if (income.amount > 0 && expense.amount > 0) {
+        if (income != null && expense != null) {
             SpacerHor(width = 8.dp)
             IvyDividerDot()
             SpacerHor(width = 8.dp)
         }
 
-        if (income.amount > 0) {
-            income.AmountCurrencyLabel(
-                testTag = "upcoming_income",
-                label = stringResource(R.string.income_lowercase),
-                amountColor = Green,
-            )
-        }
+        income?.AmountCurrencyLabel(
+            testTag = "upcoming_income",
+            label = stringResource(R.string.income_lowercase),
+            amountColor = UI.colors.green,
+        )
     }
 }
 
 @Composable
-private fun Value.AmountCurrencyLabel(
+private fun ValueUi.AmountCurrencyLabel(
     testTag: String,
     label: String,
     amountColor: Color
 ) {
-    val formattedAmount = formatAmount(shortenBigNumbers = false)
     Text(
         modifier = Modifier.testTag(testTag),
-        text = "$formattedAmount $currency",
-        style = UI.typo.nC.style(
+        text = "$amount $currency",
+        style = UI.typoSecond.c.style(
             fontWeight = FontWeight.ExtraBold,
             color = amountColor,
         )
@@ -179,7 +148,7 @@ private fun Value.AmountCurrencyLabel(
         text = label,
         style = UI.typo.c.style(
             fontWeight = FontWeight.Normal,
-            color = UI.colors.pureInverse
+            color = UI.colorsInverted.pure
         )
     )
 }
@@ -190,11 +159,12 @@ private fun Value.AmountCurrencyLabel(
 @Composable
 private fun Preview_Upcoming_IncomeExpenses() {
     ComponentPreview {
-        dummyUpcomingSection(
-            income = dummyValue(8043.23, "BGN"),
-            expense = dummyValue(923.87, "BGN")
+        dummyDueSectionUi(
+            dueType = DueSectionUiType.Upcoming,
+            income = dummyValueUi("8043.23"),
+            expense = dummyValueUi("923.87")
         ).SectionDivider(
-            expanded = true,
+            expanded = false,
             setExpanded = {}
         )
     }
@@ -204,11 +174,12 @@ private fun Preview_Upcoming_IncomeExpenses() {
 @Composable
 private fun Preview_Overdue_Expenses() {
     ComponentPreview {
-        dummyOverdueSection(
-            income = dummyValue(0.0, "BGN"),
-            expense = dummyValue(923.87, "BGN")
+        dummyDueSectionUi(
+            dueType = DueSectionUiType.Overdue,
+            income = null,
+            expense = dummyValueUi("923.87")
         ).SectionDivider(
-            expanded = false,
+            expanded = true,
             setExpanded = {}
         )
     }
@@ -218,11 +189,12 @@ private fun Preview_Overdue_Expenses() {
 @Composable
 private fun Preview_Upcoming_Income() {
     ComponentPreview {
-        dummyUpcomingSection(
-            income = dummyValue(8043.23, "BGN"),
-            expense = dummyValue(0.0, "BGN")
+        dummyDueSectionUi(
+            dueType = DueSectionUiType.Upcoming,
+            income = dummyValueUi("8043.23"),
+            expense = null,
         ).SectionDivider(
-            expanded = false,
+            expanded = true,
             setExpanded = {}
         )
     }

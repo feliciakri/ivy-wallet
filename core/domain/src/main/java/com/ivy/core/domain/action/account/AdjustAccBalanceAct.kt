@@ -1,11 +1,12 @@
 package com.ivy.core.domain.action.account
 
+import com.ivy.common.time.provider.TimeProvider
+import com.ivy.core.domain.action.Action
 import com.ivy.core.domain.action.calculate.account.AccBalanceFlow
 import com.ivy.core.domain.action.data.Modify
 import com.ivy.core.domain.action.transaction.WriteTrnsAct
 import com.ivy.core.domain.pure.account.adjustBalanceTrn
 import com.ivy.data.account.Account
-import com.ivy.frp.action.Action
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -16,6 +17,7 @@ import javax.inject.Inject
 class AdjustAccBalanceAct @Inject constructor(
     private val writeTrnsAct: WriteTrnsAct,
     private val accBalanceFlow: AccBalanceFlow,
+    private val timeProvider: TimeProvider,
 ) : Action<AdjustAccBalanceAct.Input, Unit>() {
     /**
      * @param hideTransaction whether to hide the adjust transactions
@@ -30,6 +32,7 @@ class AdjustAccBalanceAct @Inject constructor(
         val accBalance = accBalanceFlow(AccBalanceFlow.Input(account = account)).first()
 
         val adjustTrn = adjustBalanceTrn(
+            timeProvider = timeProvider,
             account = account,
             currentBalance = accBalance.amount,
             desiredBalance = desiredBalance,

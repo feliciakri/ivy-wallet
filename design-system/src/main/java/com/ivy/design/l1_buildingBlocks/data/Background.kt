@@ -2,6 +2,7 @@ package com.ivy.design.l1_buildingBlocks.data
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -9,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.ivy.design.l0_system.asBrush
+import com.ivy.design.l0_system.color.asBrush
 import com.ivy.design.util.paddingIvy
 import com.ivy.design.util.thenWhen
 
@@ -86,15 +87,20 @@ fun solidWithBorder(
     borderWidth = borderWidth,
     padding = padding
 )
+
+fun none(): Background.None = Background.None
 // endregion
 
+@Immutable
 sealed interface Background {
+    @Immutable
     data class Solid internal constructor(
         val shape: Shape,
         val color: Brush,
         val padding: IvyPadding?
     ) : Background
 
+    @Immutable
     data class Outlined internal constructor(
         val shape: Shape,
         val color: Brush,
@@ -102,6 +108,7 @@ sealed interface Background {
         val padding: IvyPadding?
     ) : Background
 
+    @Immutable
     data class SolidWithBorder internal constructor(
         val shape: Shape,
         val solid: Brush,
@@ -110,6 +117,7 @@ sealed interface Background {
         val padding: IvyPadding?,
     ) : Background
 
+    @Immutable
     object None : Background
 }
 

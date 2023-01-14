@@ -16,17 +16,16 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.Configuration
 import androidx.work.impl.utils.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
-import com.ivy.common.timeNowUTC
-import com.ivy.frp.test.TestIdlingResource
-import com.ivy.frp.test.TestingContext
-import com.ivy.frp.view.navigation.Navigation
+import com.ivy.common.test.epocMillisNow
+import com.ivy.common.test.epochSecondsNow
+import com.ivy.core.domain.test.TestIdlingResource
+import com.ivy.core.domain.test.TestingContext
+import com.ivy.core.ui.temp.trash.IvyWalletCtx
 import com.ivy.wallet.compose.component.OnboardingFlow
 import com.ivy.wallet.io.network.IvySession
 import com.ivy.wallet.io.persistence.IvyRoomDatabase
 import com.ivy.wallet.io.persistence.SharedPrefs
 import com.ivy.wallet.ui.RootActivity
-import com.ivy.wallet.utils.toEpochMilli
-import com.ivy.wallet.utils.toEpochSeconds
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.test.runTest
@@ -49,10 +48,7 @@ abstract class IvyComposeTest {
     private var idlingResource: IdlingResource? = null
 
     @Inject
-    lateinit var ivyContext: com.ivy.core.ui.temp.IvyWalletCtx
-
-    @Inject
-    lateinit var navigation: Navigation
+    lateinit var ivyContext: IvyWalletCtx
 
     @Inject
     lateinit var ivyRoomDatabase: IvyRoomDatabase
@@ -115,7 +111,6 @@ abstract class IvyComposeTest {
 
     private fun resetIvyContext() {
         ivyContext.reset()
-        navigation.reset()
     }
 
     private fun context(): Context {
@@ -162,16 +157,16 @@ abstract class IvyComposeTest {
 }
 
 fun ComposeTestRule.waitSeconds(secondsToWait: Long) {
-    val secondsStart = timeNowUTC().toEpochSeconds()
+    val secondsStart = epochSecondsNow()
     this.waitUntil(timeoutMillis = (secondsToWait + 5) * 1000) {
-        secondsStart - timeNowUTC().toEpochSeconds() < -secondsToWait
+        secondsStart - epochSecondsNow() < -secondsToWait
     }
 }
 
 fun ComposeTestRule.waitMillis(waitMs: Long) {
-    val startMs = timeNowUTC().toEpochMilli()
+    val startMs = epocMillisNow()
     this.waitUntil(timeoutMillis = waitMs + 5000) {
-        startMs - timeNowUTC().toEpochMilli() < -waitMs
+        startMs - epocMillisNow() < -waitMs
     }
 }
 
